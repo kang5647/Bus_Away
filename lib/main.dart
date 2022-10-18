@@ -1,93 +1,55 @@
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:bus_away_firestore/searchUI.dart';
+import 'firebase setup/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
-import 'dart:math';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    MaterialApp(
+      //help with base layout
+      //blue is property and green is the widget
+      home: Home(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Bus Route Search',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const FirebaseSearchScreen(),
-    );
-  }
-}
-
-class FirebaseSearchScreen extends StatefulWidget {
-  const FirebaseSearchScreen({Key? key}) : super(key: key);
-
-  @override
-  State<FirebaseSearchScreen> createState() => _FirebaseSearchScreenState();
-}
-
-class _FirebaseSearchScreenState extends State<FirebaseSearchScreen> {
-  List searchResult = [];
-
-  void searchFromFirebase(String query) async {
-    final result = await FirebaseFirestore.instance
-        .collection('busRoutes')
-        .where('ServiceNo', isEqualTo: query)
-        .get();
-
-    setState(() {
-      searchResult = result.docs.map((e) => e.data()).toList();
-    });
-  }
-
+//stateless widget cannot change over time
+//stateful widget can change over time (eg increasing counts)
+//enable hot reload
+class Home extends StatelessWidget {
+  //String busNo = "unknown";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Firebase Search"),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Enter Bus Service No.",
-              ),
-              onChanged: (query) {
-                searchFromFirebase(query);
-              },
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: searchResult.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(searchResult[index]['ServiceNo']),
-                  subtitle: Text(searchResult[index]['BusStopCode']),
-                  trailing: Text(searchResult[index]['Direction'].toString()),
+        title: Text('search'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                showSearch(
+                  context: context,
+                  delegate: MySearchDelegate(),
                 );
               },
-            ),
-          ),
+              icon: const Icon(Icons.search)),
         ],
+        backgroundColor: Colors.cyan[900],
+        //Color.fromARGB(255, 3, 120, 116),
+        toolbarHeight: 80.0,
+      ),
+      //anything undder the app bar
+      body: Container(
+        height: 200,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage("assets/icon_bus.png"), fit: BoxFit.cover),
+        ),
+        margin: EdgeInsets.fromLTRB(10, 100, 10, 50),
       ),
     );
   }
