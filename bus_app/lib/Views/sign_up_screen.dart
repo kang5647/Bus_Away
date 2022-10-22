@@ -36,7 +36,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       print(e.code);
       // Case if the email is invalid
       if (e.code == "invalid-email") {
-        Get.snackbar("Invalid", "Enter a valid email",
+        Get.snackbar("Invalid Email", "Enter a valid email",
             icon: Icon(
               Icons.error,
               color: Colors.white,
@@ -49,7 +49,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
       // Case if the passsword is too short
       else if (e.code == "weak-password") {
-        Get.snackbar("Invalid", "Enter a longer password",
+        Get.snackbar("Weak Password", "Enter a longer password",
             icon: Icon(
               Icons.error,
               color: Colors.white,

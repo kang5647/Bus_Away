@@ -74,3 +74,13 @@ Widget blueIntroWidgetWithoutLogos() {
     ),
   );
 }
+
+Widget blueHeader() {
+  return Container(
+    width: Get.width,
+    height: Get.height * 0.06,
+    decoration: const BoxDecoration(
+        image: DecorationImage(
+            image: AssetImage("assets/backGround.png"), fit: BoxFit.cover)),
+  );
+}
