@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:ffi';
 import 'dart:ui';
 
+import 'package:bus_app/Control/weather_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Utility/app_constants.dart';
 import 'package:bus_app/Views/home_screen.dart';
@@ -26,14 +29,18 @@ class EnterScreen extends StatefulWidget {
 }
 
 class _EnterScreenState extends State<EnterScreen> {
+  // Initial camera position for Google Maps
   static const CameraPosition initialCameraPosition = CameraPosition(
       target: LatLng(37.42796133580664, -122.085749655962), zoom: 14);
 
   String? _mapStyle;
   late GoogleMapController googleMapController;
-
+  WeatherApiClient client = WeatherApiClient();
+  Weather? data;
+  Timer? _timer;
   Set<Marker> markers = {};
 
+  // Function to determine the live location of the user
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -64,9 +71,18 @@ class _EnterScreenState extends State<EnterScreen> {
     return position;
   }
 
+  Future<void> getData() async {
+    data = await client.getCurrentWeather();
+    print(data!.temp);
+    print(data!.cityName);
+  }
+
   @override
   void initState() {
     super.initState();
+    client.getCurrentWeather();
+    _timer =
+        new Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
@@ -82,7 +98,9 @@ class _EnterScreenState extends State<EnterScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: GoogleMap(
+            child:
+                // Creating the first instance of the Google Map layer
+                GoogleMap(
               initialCameraPosition: initialCameraPosition,
               zoomControlsEnabled: false,
               compassEnabled: false,
@@ -98,7 +116,19 @@ class _EnterScreenState extends State<EnterScreen> {
           blueHeader(),
 
           // Greeting text
-          buildTextField(),
+          FutureBuilder(
+            future: getData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return buildTextField(data!.temp, data!.mainDesc);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              return buildTextField(20.0, "Clear");
+            },
+          ),
 
           // Bus routes
           buildRouteSelection(),
@@ -130,7 +160,7 @@ class _EnterScreenState extends State<EnterScreen> {
 
                     setState(() {});
                   },
-                  child: Icon(
+                  child: const Icon(
                     Icons.my_location,
                     color: Colors.white,
                   ),
@@ -145,8 +175,15 @@ class _EnterScreenState extends State<EnterScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 }
 
+// The code for the route selection bar as well as the circles and icons
 Widget buildRouteSelection() {
   return Positioned(
     top: 100,
@@ -188,6 +225,7 @@ Widget buildRouteSelection() {
   );
 }
 
+// Code for the bottom sheet, where the log out function lies as well
 Widget buildBottomSheet() {
   return Align(
     alignment: Alignment.bottomCenter,
@@ -223,6 +261,7 @@ Widget buildBottomSheet() {
   );
 }
 
+// General code to build the different bus route icons used in the buildRouteSelection function
 Widget busRouteIcon(String route, String picPath) {
   return Container(
     child: Column(
@@ -246,7 +285,8 @@ Widget busRouteIcon(String route, String picPath) {
   );
 }
 
-Widget buildTextField() {
+// Code to build the greeting text at the top of the page
+Widget buildTextField(double? temp, String? mainDesc) {
   return Positioned(
     top: 30,
     left: 20,
@@ -269,12 +309,8 @@ Widget buildTextField() {
             padding: const EdgeInsets.only(left: 15.0),
             child: Row(
               children: [
-                // Bus icon
-                Icon(
-                  CupertinoIcons.bus,
-                  color: AppColors.greyColor,
-                  size: 30.0,
-                ),
+                // Weather Icon
+                buildWeatherIcon(temp, mainDesc),
 
                 // Spaced Seprator
                 const SizedBox(
@@ -282,7 +318,7 @@ Widget buildTextField() {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.only(top: 5.0),
+                  padding: const EdgeInsets.only(top: 5.0, left: 5.0),
                   child: Text(
                     "Hello there! Select a Bus Route",
                     style: GoogleFonts.poppins(
@@ -298,6 +334,7 @@ Widget buildTextField() {
   );
 }
 
+// Code to show the inside of the bottomSheet when it is pressed
 Widget bottomSheetControl() {
   return Container(
     width: Get.width,
@@ -368,6 +405,51 @@ Widget bottomSheetControl() {
               ),
             ),
           ]),
+    ),
+  );
+}
+
+Widget buildWeatherIcon(double? temp, String? mainDesc) {
+  IconData myIcon;
+  Color myColor;
+  if (mainDesc == "Thunderstorm") {
+    myIcon = Icons.thunderstorm;
+    myColor = Colors.grey;
+  } else if (mainDesc == "Drizzle") {
+    myIcon = CupertinoIcons.cloud_drizzle_fill;
+    myColor = AppColors.blueColor;
+  } else if (mainDesc == "Rain") {
+    myIcon = CupertinoIcons.cloud_rain_fill;
+    myColor = AppColors.blueColor;
+  } else if (mainDesc == "Snow") {
+    myIcon = CupertinoIcons.snow;
+    myColor = Colors.lightBlue;
+  } else if (mainDesc == "Clouds") {
+    myIcon = Icons.wb_cloudy;
+    myColor = AppColors.greyColor;
+  } else {
+    myIcon = Icons.sunny;
+    myColor = Colors.orange;
+  }
+  return Container(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        children: [
+          Icon(
+            myIcon,
+            size: 20,
+            color: myColor,
+          ),
+          const SizedBox(
+            height: 3.0,
+          ),
+          Text(
+            "${temp!.toPrecision(1)}°",
+            style: TextStyle(fontSize: 12, fontStyle: FontStyle.normal),
+          )
+        ],
+      ),
     ),
   );
 }
