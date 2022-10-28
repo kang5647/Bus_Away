@@ -22,25 +22,12 @@ class bus_eta_ui extends StatefulWidget {
 class _bus_eta_uiState extends State<bus_eta_ui> {
   late Future<List<BusEta>> futureBusService;
   late BusETAJSONHelper jsonHelper;
+  late Timer mytimer;
   //String path = 'BusArrivalv2?BusStopCode=83139';
   @override
   void initState() {
     jsonHelper = BusETAJSONHelper();
     super.initState();
-
-    Timer mytimer = Timer.periodic(Duration(seconds: 30), (timer) async {
-      final response = await jsonHelper.fetchServices(
-          widget.busStopCode, widget.busServiceNo);
-      setState(() {
-        response;
-      });
-    });
-
-    @override
-    void dispose() {
-      mytimer.cancel();
-      super.dispose();
-    }
   }
 
   // void updateBusArrTimings() async {
@@ -66,6 +53,19 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
     //   mytimer.cancel();
     //   super.dispose();
     // }
+    mytimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      final response =
+          jsonHelper.fetchServices(widget.busStopCode, widget.busServiceNo);
+      setState(() {
+        response;
+      });
+    });
+
+    @override
+    void dispose() {
+      mytimer.cancel();
+      //super.dispose();
+    }
 
     return MaterialApp(
         title: 'bus arrival timing',
@@ -87,6 +87,7 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
                   return IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
+                      dispose();
                       Navigator.pop(context);
                       Navigator.push(
                           context,
@@ -120,18 +121,23 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
 }
 
 //where we display the eta and bus load
-class BusServiceList extends StatelessWidget {
+class BusServiceList extends StatefulWidget {
   const BusServiceList({super.key, required this.busServiceList});
   final List<BusEta> busServiceList;
 
+  @override
+  State<BusServiceList> createState() => _BusServiceListState();
+}
+
+class _BusServiceListState extends State<BusServiceList> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
 
     print(now.toIso8601String());
-    DateTime nextestarrival =
-        DateTime.parse(busServiceList[0].services[0].nextBus.estimatedArrival);
-    DateTime nextbus2estarrival =
-        DateTime.parse(busServiceList[0].services[0].nextBus2.estimatedArrival);
+    DateTime nextestarrival = DateTime.parse(
+        widget.busServiceList[0].services[0].nextBus.estimatedArrival);
+    DateTime nextbus2estarrival = DateTime.parse(
+        widget.busServiceList[0].services[0].nextBus2.estimatedArrival);
     //final difference = nextestarrival.difference(now);
     //print(difference.inMinutes);
     return Align(
@@ -157,7 +163,7 @@ class BusServiceList extends StatelessWidget {
               children: [
                 Icon(Icons.bus_alert_outlined, size: 50.0),
                 Text(
-                  busServiceList[0].services[0].serviceNo,
+                  widget.busServiceList[0].services[0].serviceNo,
                   style: TextStyle(
                       fontSize: 40,
                       color: Colors.white,
@@ -171,7 +177,7 @@ class BusServiceList extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  busServiceList[0].busStopCode,
+                  widget.busServiceList[0].busStopCode,
                   style: TextStyle(
                       fontSize: 40,
                       color: Colors.black54,
@@ -199,15 +205,12 @@ class BusServiceList extends StatelessWidget {
                       onPressed: () {},
                       child: Column(
                         children: [
-                          wheelchair_indicator(
-                              busServiceList[0].services[0].nextBus.feature),
-                          Text(nextestarrival
-                                  .difference(now)
-                                  .inMinutes
-                                  .toString() +
-                              ' min'),
-                          busLoadLevel(
-                              busServiceList[0].services[0].nextBus.load),
+                          wheelchair_indicator(widget
+                              .busServiceList[0].services[0].nextBus.feature),
+                          arrIndicator(
+                              nextestarrival.difference(now).inMinutes),
+                          busLoadLevel(widget
+                              .busServiceList[0].services[0].nextBus.load),
                         ],
                       )),
                 ),
@@ -227,14 +230,12 @@ class BusServiceList extends StatelessWidget {
                       onPressed: () {},
                       child: Column(
                         children: [
-                          wheelchair_indicator(
-                              busServiceList[0].services[0].nextBus2.feature),
-                          arrIndicator(nextbus2estarrival
-                              .difference(now)
-                              .inMinutes
-                              .toString()),
-                          busLoadLevel(
-                              busServiceList[0].services[0].nextBus2.load),
+                          wheelchair_indicator(widget
+                              .busServiceList[0].services[0].nextBus2.feature),
+                          arrIndicator(
+                              nextbus2estarrival.difference(now).inMinutes),
+                          busLoadLevel(widget
+                              .busServiceList[0].services[0].nextBus2.load),
                         ],
                       )),
                 ),
@@ -278,11 +279,12 @@ LinearPercentIndicator busLoadLevel(String load) {
   }
 }
 
-Text arrIndicator(String time) {
-  if (time == '0' || time == '-1') {
-    print(time);
-    return Text("Arr");
+Text arrIndicator(int time) {
+  //print(time);
+  if (time <= 0) {
+    // print("time $time");
+    return const Text("Arr");
   } else {
-    return Text(time + ' min');
+    return Text(time.toString() + ' min');
   }
 }
