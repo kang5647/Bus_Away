@@ -25,9 +25,22 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
   //String path = 'BusArrivalv2?BusStopCode=83139';
   @override
   void initState() {
+    jsonHelper = BusETAJSONHelper();
     super.initState();
 
-    jsonHelper = BusETAJSONHelper();
+    Timer mytimer = Timer.periodic(Duration(seconds: 30), (timer) async {
+      final response = await jsonHelper.fetchServices(
+          widget.busStopCode, widget.busServiceNo);
+      setState(() {
+        response;
+      });
+    });
+
+    @override
+    void dispose() {
+      mytimer.cancel();
+      super.dispose();
+    }
   }
 
   // void updateBusArrTimings() async {
@@ -40,13 +53,19 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
 
   @override
   Widget build(BuildContext context) {
-    Timer mytimer = Timer.periodic(Duration(seconds: 30), (timer) async {
-      final response = await BusETAJSONHelper()
-          .fetchServices(widget.busStopCode, widget.busServiceNo);
-      setState(() {
-        response;
-      });
-    });
+    // Timer mytimer = Timer.periodic(Duration(seconds: 30), (timer) async {
+    //   final response = await jsonHelper.fetchServices(
+    //       widget.busStopCode, widget.busServiceNo);
+    //   setState(() {
+    //     response;
+    //   });
+    // });
+
+    // @override
+    // void dispose() {
+    //   mytimer.cancel();
+    //   super.dispose();
+    // }
 
     return MaterialApp(
         title: 'bus arrival timing',
@@ -68,6 +87,7 @@ class _bus_eta_uiState extends State<bus_eta_ui> {
                   return IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
+                      Navigator.pop(context);
                       Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -121,7 +141,7 @@ class BusServiceList extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           color: AppColors.lightBlueColor.withOpacity(0.7),
         ),
-        margin: const EdgeInsets.fromLTRB(10, 350, 10, 0),
+        margin: const EdgeInsets.fromLTRB(10, 450, 10, 0),
         //padding: EdgeInsets.symmetric(horizontal: 156.0, vertical: 110.0),
         //color: Color.fromARGB(255, 3, 120, 116),
         //alignment: Alignment.centerLeft,

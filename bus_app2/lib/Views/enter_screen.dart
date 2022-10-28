@@ -82,9 +82,9 @@ class _EnterScreenState extends State<EnterScreen> {
   @override
   void initState() {
     super.initState();
-    client.getCurrentWeather();
-    _timer =
-        new Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
+    // client.getCurrentWeather();
+    // _timer =
+    //     new Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
@@ -121,13 +121,13 @@ class _EnterScreenState extends State<EnterScreen> {
           FutureBuilder(
             future: getData(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return buildTextField(data!.temp, data!.mainDesc);
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
+              // if (snapshot.connectionState == ConnectionState.done) {
+              //   return buildTextField(data!.temp, data!.mainDesc);
+              // } else if (snapshot.connectionState == ConnectionState.waiting) {
+              //   return Center(
+              //     child: CircularProgressIndicator(),
+              //   );
+              // }
               return buildTextField(20.0, "Clear");
             },
           ),
@@ -205,18 +205,18 @@ Widget buildRouteSelection() {
                   children: const [
                     busRouteIcon(route: "City", picPath: "assets/city.png"),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
                     busRouteIcon(
                         route: "Heartland", picPath: "assets/house.png"),
                     //busRouteIcon("Heartland", "assets/house.png"),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
                     busRouteIcon(route: "Nature", picPath: "assets/nature.png"),
                     //busRouteIcon("Nature", "assets/nature.png"),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
                     busRouteIcon(
                         route: "Cultural", picPath: "assets/history.png"),
@@ -279,18 +279,15 @@ class busRouteIcon extends StatefulWidget {
 class _busRouteIconState extends State<busRouteIcon> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 82,
-      height: 70,
-      child: ElevatedButton(
-        onPressed: () {
+    return Container(
+      child: InkWell(
+        onTap: () {
           if (widget.route == "City") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
                         bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Heartland") {
             Navigator.push(
@@ -298,7 +295,6 @@ class _busRouteIconState extends State<busRouteIcon> {
                 MaterialPageRoute(
                     builder: (context) =>
                         bus_eta_ui(busStopCode: "83139", busServiceNo: "15")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Nature") {
             Navigator.push(
@@ -306,7 +302,6 @@ class _busRouteIconState extends State<busRouteIcon> {
                 MaterialPageRoute(
                     builder: (context) =>
                         bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Cultural") {
             Navigator.push(
@@ -314,20 +309,15 @@ class _busRouteIconState extends State<busRouteIcon> {
                 MaterialPageRoute(
                     builder: (context) =>
                         bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
 
             print("clicked");
           }
         },
-        style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.lightBlueColor.withOpacity(1.0)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             CircleAvatar(
-              backgroundColor: AppColors.whiteColor.withOpacity(0.7),
-              radius: 23,
+              backgroundColor: AppColors.lightBlueColor.withOpacity(0.7),
+              radius: 26,
               backgroundImage: ExactAssetImage(widget.picPath),
             ),
             const SizedBox(
@@ -338,8 +328,8 @@ class _busRouteIconState extends State<busRouteIcon> {
               child: Text(
                 widget.route,
                 style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
                     color: Colors.black),
               ),
             )
