@@ -21,6 +21,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+Timer? _timer;
+
 class EnterScreen extends StatefulWidget {
   const EnterScreen({super.key});
 
@@ -37,7 +39,6 @@ class _EnterScreenState extends State<EnterScreen> {
   late GoogleMapController googleMapController;
   WeatherApiClient client = WeatherApiClient();
   Weather? data;
-  Timer? _timer;
   Set<Marker> markers = {};
 
   // Function to determine the live location of the user
@@ -81,8 +82,10 @@ class _EnterScreenState extends State<EnterScreen> {
   void initState() {
     super.initState();
     client.getCurrentWeather();
-    _timer =
-        new Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
+    _timer = new Timer.periodic(const Duration(seconds: 10), (Timer t) {
+      getData();
+      setState(() {});
+    });
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
@@ -200,6 +203,7 @@ Widget buildRouteSelection() {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
+<<<<<<< Updated upstream:bus_app/lib/Views/enter_screen.dart
                   children: [
                     busRouteIcon("City", "assets/city.png"),
                     const SizedBox(
@@ -214,6 +218,27 @@ Widget buildRouteSelection() {
                       width: 45,
                     ),
                     busRouteIcon("Cultural", "assets/history.png"),
+=======
+                  children: const [
+                    BusRouteIcon(route: "City", picPath: "assets/city.png"),
+                    SizedBox(
+                      width: 45,
+                    ),
+                    BusRouteIcon(
+                        route: "Heartland", picPath: "assets/house.png"),
+                    //busRouteIcon("Heartland", "assets/house.png"),
+                    SizedBox(
+                      width: 45,
+                    ),
+                    BusRouteIcon(route: "Nature", picPath: "assets/nature.png"),
+                    //busRouteIcon("Nature", "assets/nature.png"),
+                    SizedBox(
+                      width: 45,
+                    ),
+                    BusRouteIcon(
+                        route: "Cultural", picPath: "assets/history.png"),
+                    //busRouteIcon("Cultural", "assets/history.png"),
+>>>>>>> Stashed changes:bus_app2/lib/Views/enter_screen.dart
                   ],
                 ),
               ),
@@ -261,6 +286,7 @@ Widget buildBottomSheet() {
   );
 }
 
+<<<<<<< Updated upstream:bus_app/lib/Views/enter_screen.dart
 // General code to build the different bus route icons used in the buildRouteSelection function
 Widget busRouteIcon(String route, String picPath) {
   return Container(
@@ -271,6 +297,78 @@ Widget busRouteIcon(String route, String picPath) {
           backgroundColor: AppColors.lightBlueColor.withOpacity(0.4),
           radius: 26,
           backgroundImage: ExactAssetImage(picPath),
+=======
+class BusRouteIcon extends StatefulWidget {
+  const BusRouteIcon({super.key, required this.route, required this.picPath});
+  final String route;
+  final String picPath;
+  @override
+  State<BusRouteIcon> createState() => _BusRouteIconState();
+}
+
+class _BusRouteIconState extends State<BusRouteIcon> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: InkWell(
+        onTap: () {
+          if (widget.route == "City") {
+            _timer?.cancel();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+            print("clicked");
+          } else if (widget.route == "Heartland") {
+            _timer?.cancel();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Bus_eta_ui(busStopCode: "83139", busServiceNo: "15")));
+            print("clicked");
+          } else if (widget.route == "Nature") {
+            _timer?.cancel();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+            print("clicked");
+          } else if (widget.route == "Cultural") {
+            _timer?.cancel();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+
+            print("clicked");
+          }
+        },
+        child: Column(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.lightBlueColor.withOpacity(0.7),
+              radius: 26,
+              backgroundImage: ExactAssetImage(widget.picPath),
+            ),
+            const SizedBox(
+              height: 5.0,
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                widget.route,
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black),
+              ),
+            )
+          ],
+>>>>>>> Stashed changes:bus_app2/lib/Views/enter_screen.dart
         ),
         const SizedBox(
           height: 5.0,
@@ -352,7 +450,7 @@ Widget bottomSheetControl() {
             const SizedBox(
               height: 10,
             ),
-            Text(
+            const Text(
               "Settings",
               style: TextStyle(
                   color: Colors.black,
@@ -362,7 +460,7 @@ Widget bottomSheetControl() {
             const SizedBox(
               height: 20,
             ),
-            Text(
+            const Text(
               "Logins",
               style: TextStyle(
                   color: Colors.black,
@@ -392,7 +490,7 @@ Widget bottomSheetControl() {
                 },
                 child: Row(
                   children: [
-                    Text(
+                    const Text(
                       "Log Out",
                       style: TextStyle(
                           color: Colors.blue,
