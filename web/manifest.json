@@ -1,6 +1,6 @@
 {
-    "name": "bus_away_firestore",
-    "short_name": "bus_away_firestore",
+    "name": "bus_app",
+    "short_name": "bus_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,4 +1,4 @@
-# bus_away_firestore
+# bus_app
 
 A new Flutter project.
 
