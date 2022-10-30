@@ -1,34 +1,77 @@
 {
   "project_info": {
-    "project_number": "30299998370",
-    "project_id": "busawaylogin",
-    "storage_bucket": "busawaylogin.appspot.com"
+    "project_number": "122070373045",
+    "project_id": "sc2006-8e836",
+    "storage_bucket": "sc2006-8e836.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:30299998370:android:c5b46fa32f1ecf07cbaffb",
+        "mobilesdk_app_id": "1:122070373045:android:f0e409ebf65efcaa5764fc",
         "android_client_info": {
-          "package_name": "com.example.bus_app"
+          "package_name": "com.example.bus_away_database"
         }
       },
       "oauth_client": [
         {
-          "client_id": "30299998370-g38ncrq9rpl2u5fi8vhq772rqsbakdj7.apps.googleusercontent.com",
+          "client_id": "122070373045-okd9l1tj9522rao28g4d24f6edtkedt3.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA4pNs59mkjzpRPaXaIxz9b8inAlyGpJ7w"
+          "current_key": "AIzaSyAOjFK99fwIgmGyW6B7zhhsxVRzWAorhmA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "30299998370-g38ncrq9rpl2u5fi8vhq772rqsbakdj7.apps.googleusercontent.com",
+              "client_id": "122070373045-okd9l1tj9522rao28g4d24f6edtkedt3.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "122070373045-05umji32f7tfcm4vepl6okpu1ucqanql.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.busApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:122070373045:android:206401a496a8eaed5764fc",
+        "android_client_info": {
+          "package_name": "com.example.bus_away_firestore"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "122070373045-okd9l1tj9522rao28g4d24f6edtkedt3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOjFK99fwIgmGyW6B7zhhsxVRzWAorhmA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "122070373045-okd9l1tj9522rao28g4d24f6edtkedt3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "122070373045-05umji32f7tfcm4vepl6okpu1ucqanql.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.busApp"
+              }
             }
           ]
         }

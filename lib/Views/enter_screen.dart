@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'dart:ffi';
-//import 'dart:js';
-import 'dart:ui';
 
+import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/weather_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Utility/app_constants.dart';
+import 'package:bus_app/Views/bus_map2.dart';
+import 'package:bus_app/Views/bus_map3.dart';
 import 'package:bus_app/Views/home_screen.dart';
 import 'package:bus_app/Views/login_screen.dart';
+import 'package:bus_app/Views/select_bus_screen.dart';
 import 'package:bus_app/Widgets/blue_intro_widget.dart';
 import 'package:bus_app/Widgets/text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,14 +35,45 @@ class EnterScreen extends StatefulWidget {
 
 class _EnterScreenState extends State<EnterScreen> {
   // Initial camera position for Google Maps
-  static const CameraPosition initialCameraPosition = CameraPosition(
-      target: LatLng(37.42796133580664, -122.085749655962), zoom: 14);
 
   String? _mapStyle;
   late GoogleMapController googleMapController;
   WeatherApiClient client = WeatherApiClient();
   Weather? data;
   Set<Marker> markers = {};
+
+  MarkerAdder staticMarkers = MarkerAdder();
+  BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor cityIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor natureIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
+  bool isSetupReady = false;
+
+  void setCustomMarkerIcon() async {
+    //used to set the icons for our markers in project (can custom markers)
+    busstopIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_source.png");
+
+    cityIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_city.png");
+
+    natureIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_nature.png");
+
+    culturalIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_history.png");
+
+    staticMarkers.setStaticMarkers(
+        busstopIcon, cityIcon, natureIcon, culturalIcon);
+
+    markers.addAll(staticMarkers.getMarkers);
+
+    setState(() {
+      isSetupReady = true;
+    });
+  }
 
   // Function to determine the live location of the user
   Future<Position> _determinePosition() async {
@@ -83,8 +115,9 @@ class _EnterScreenState extends State<EnterScreen> {
   @override
   void initState() {
     super.initState();
+    setCustomMarkerIcon();
     client.getCurrentWeather();
-    _timer = new Timer.periodic(const Duration(seconds: 10), (Timer t) {
+    _timer = new Timer.periodic(const Duration(minutes: 10), (Timer t) {
       getData();
       setState(() {});
     });
@@ -96,89 +129,117 @@ class _EnterScreenState extends State<EnterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(
-            top: 180,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child:
-                // Creating the first instance of the Google Map layer
-                GoogleMap(
-              initialCameraPosition: initialCameraPosition,
-              zoomControlsEnabled: false,
-              compassEnabled: false,
-              markers: markers,
-              onMapCreated: (GoogleMapController controller) {
-                googleMapController = controller;
-                googleMapController.setMapStyle(_mapStyle);
-              },
-            ),
-          ),
-
-          // Background image
-          blueHeader(),
-
-          // Greeting text
-          FutureBuilder(
-            future: getData(),
+        body: Stack(children: [
+      Positioned(
+        top: 180,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: FutureBuilder(
+            future: _determinePosition(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return buildTextField(data!.temp, data!.mainDesc);
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
+                if (snapshot.hasError) {
+                  return Center(
+                      child: Text(
+                    '${snapshot.error} occurred',
+                    style: TextStyle(fontSize: 18),
+                  ));
+                } else if (snapshot.hasData) {
+                  Position myPosition = snapshot.data!;
+                  markers.add(Marker(
+                      markerId: const MarkerId("currentLocation"),
+                      position:
+                          LatLng(myPosition.latitude, myPosition.longitude)));
+                  return isSetupReady
+                      ? GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                myPosition.latitude,
+                                myPosition.longitude,
+                              ),
+                              zoom: 15.5),
+                          zoomControlsEnabled: false,
+                          compassEnabled: false,
+                          markers: markers,
+                          onMapCreated: (GoogleMapController controller) {
+                            googleMapController = controller;
+                            //googleMapController.setMapStyle(_mapStyle);
+                          },
+                        )
+                      : Center(
+                          child: Text('Loading Maps...'),
+                        );
+                }
               }
-              return buildTextField(20.0, "Clear");
-            },
-          ),
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }),
+      ),
+      // Creating the first instance of the Google Map layer
 
-          // Bus routes
-          buildRouteSelection(),
+      // Background image
+      blueHeader(),
 
-          // GPS current location widget on bottom right
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 35.0, right: 12.0),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.blueColor,
-                child: InkWell(
-                  onTap: () async {
-                    Position myPosition = await _determinePosition();
-                    print(myPosition);
+      // Greeting text
+      FutureBuilder(
+        future: getData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return buildTextField(data!.temp, data!.mainDesc);
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return buildTextField(20.0, "Clear");
+        },
+      ),
 
-                    googleMapController.animateCamera(
-                        CameraUpdate.newCameraPosition(CameraPosition(
-                            target: LatLng(
-                                myPosition.latitude, myPosition.longitude),
-                            zoom: 14)));
+      // Bus routes
+      buildRouteSelection(),
 
-                    markers.clear();
-                    markers.add(Marker(
-                        markerId: const MarkerId('currentLocation'),
-                        position:
-                            LatLng(myPosition.latitude, myPosition.longitude)));
+      // GPS current location widget on bottom right
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 35.0, right: 12.0),
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.blueColor,
+            child: InkWell(
+              onTap: () async {
+                Position myPosition = await _determinePosition();
+                print(myPosition);
 
-                    setState(() {});
-                  },
-                  child: const Icon(
-                    Icons.my_location,
-                    color: Colors.white,
-                  ),
-                ),
+                googleMapController.animateCamera(
+                    CameraUpdate.newCameraPosition(CameraPosition(
+                        target:
+                            LatLng(myPosition.latitude, myPosition.longitude),
+                        zoom: 14)));
+
+                markers.clear();
+                markers.addAll(staticMarkers.getMarkers);
+                /* markers.add(Marker(
+                    markerId: const MarkerId('currentLocation'),
+                    position:
+                        LatLng(myPosition.latitude, myPosition.longitude)));*/
+
+                setState(() {});
+              },
+              child: const Icon(
+                Icons.my_location,
+                color: Colors.white,
               ),
             ),
           ),
-
-          // Bottom swipe up sheet
-          buildBottomSheet(),
-        ],
+        ),
       ),
-    );
+
+      // Bottom swipe up sheet
+      buildBottomSheet(),
+    ]));
   }
 
   @override
@@ -290,16 +351,14 @@ class _BusRouteIconState extends State<BusRouteIcon> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+                    builder: (context) => const Select_Bus_UI(query: "7")));
             print("clicked");
           } else if (widget.route == "Heartland") {
             _timer?.cancel();
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        Bus_eta_ui(busStopCode: "83139", busServiceNo: "15")));
+                    builder: (context) => const BusMap3(query: "168")));
             print("clicked");
           } else if (widget.route == "Nature") {
             _timer?.cancel();
@@ -307,7 +366,7 @@ class _BusRouteIconState extends State<BusRouteIcon> {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+                        bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
             print("clicked");
           } else if (widget.route == "Cultural") {
             _timer?.cancel();
@@ -315,7 +374,7 @@ class _BusRouteIconState extends State<BusRouteIcon> {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+                        bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
 
             print("clicked");
           }
@@ -454,7 +513,7 @@ Widget bottomSheetControl() {
                 },
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       "Log Out",
                       style: TextStyle(
                           color: Colors.blue,

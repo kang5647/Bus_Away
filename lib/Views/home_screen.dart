@@ -1,3 +1,5 @@
+import 'package:bus_app/Views/bus_map.dart';
+import 'package:bus_app/Views/enter_screen.dart';
 import 'package:bus_app/Views/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

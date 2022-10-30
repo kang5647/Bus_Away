@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bus_app/Views/bus_map.dart';
 import 'package:bus_app/Views/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,6 +40,16 @@ class _LoginScreenState extends State<LoginScreen> {
       // If no email was entered
       if (e.code == "user-not-found") {
         print("No User Found!");
+        Get.snackbar("Error", "Invalid Account!",
+            icon: Icon(
+              Icons.error,
+              color: Colors.white,
+            ),
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            borderRadius: 20,
+            margin: EdgeInsets.all(15),
+            colorText: Colors.white);
       } else {
         // If password or email was invalid
         Get.snackbar("Error", "Either your email or passsword is incorrect!",

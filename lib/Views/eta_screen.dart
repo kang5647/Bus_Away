@@ -10,22 +10,21 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:bus_app/Widgets/blue_intro_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class Bus_eta_ui extends StatefulWidget {
-  const Bus_eta_ui(
+class bus_eta_ui extends StatefulWidget {
+  const bus_eta_ui(
       {super.key, required this.busStopCode, required this.busServiceNo});
   final String busStopCode;
   final String busServiceNo;
 
   @override
-  State<Bus_eta_ui> createState() => _Bus_eta_uiState();
+  State<bus_eta_ui> createState() => _bus_eta_uiState();
 }
 
-class _Bus_eta_uiState extends State<Bus_eta_ui> {
+class _bus_eta_uiState extends State<bus_eta_ui> {
   late Future<List<BusEta>> futureBusService;
   late BusETAJSONHelper jsonHelper;
   late Timer _timer;
   //String path = 'BusArrivalv2?BusStopCode=83139';
-
   @override
   void initState() {
     super.initState();
