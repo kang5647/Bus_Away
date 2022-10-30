@@ -42,6 +42,38 @@ class _EnterScreenState extends State<EnterScreen> {
   Set<Marker> markers = {};
 
   MarkerAdder staticMarkers = MarkerAdder();
+  BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor cityIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor natureIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
+  bool isSetupReady = false;
+
+  void setCustomMarkerIcon() async {
+    //used to set the icons for our markers in project (can custom markers)
+    busstopIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_source.png");
+
+    cityIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_city.png");
+
+    natureIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_nature.png");
+
+    culturalIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_history.png");
+
+    staticMarkers.setStaticMarkers(
+        busstopIcon, cityIcon, natureIcon, culturalIcon);
+
+    markers.addAll(staticMarkers.getMarkers);
+
+    setState(() {
+      isSetupReady = true;
+    });
+  }
+
   // Function to determine the live location of the user
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -81,6 +113,7 @@ class _EnterScreenState extends State<EnterScreen> {
 
   @override
   void initState() {
+    setCustomMarkerIcon();
     super.initState();
     client.getCurrentWeather();
     _timer =
@@ -111,31 +144,32 @@ class _EnterScreenState extends State<EnterScreen> {
                   ));
                 } else if (snapshot.hasData) {
                   Position myPosition = snapshot.data!;
-                  staticMarkers.setCustomMarkerIcon();
-                  staticMarkers.setMarkers();
                   markers.add(Marker(
                       markerId: const MarkerId("currentLocation"),
                       position:
                           LatLng(myPosition.latitude, myPosition.longitude)));
-                  markers.addAll(staticMarkers.getMarkers);
-                  return GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                          myPosition.latitude,
-                          myPosition.longitude,
-                        ),
-                        zoom: 15.5),
-                    zoomControlsEnabled: false,
-                    compassEnabled: false,
-                    markers: markers,
-                    onMapCreated: (GoogleMapController controller) {
-                      googleMapController = controller;
-                      //googleMapController.setMapStyle(_mapStyle);
-                    },
-                  );
+                  return isSetupReady
+                      ? GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                myPosition.latitude,
+                                myPosition.longitude,
+                              ),
+                              zoom: 15.5),
+                          zoomControlsEnabled: false,
+                          compassEnabled: false,
+                          markers: markers,
+                          onMapCreated: (GoogleMapController controller) {
+                            googleMapController = controller;
+                            //googleMapController.setMapStyle(_mapStyle);
+                          },
+                        )
+                      : Center(
+                          child: Text('Loading Maps...'),
+                        );
                 }
               }
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }),

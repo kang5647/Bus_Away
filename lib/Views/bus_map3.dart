@@ -119,17 +119,6 @@ class BusMapState extends State<BusMap3> {
     //getPolyPoints();
   }
 
-  /* Future<LatLng> getCurrentLocation() async {
-    Location location = Location();
-    LatLng locationCoordinate;
-    var locationData = await location.getLocation();
-
-    locationCoordinate =
-        LatLng(locationData.latitude!, locationData.longitude!);
-
-    return locationCoordinate;
-  }*/
-
   void setCustomMarkerIcon() {
     //used to set the icons for our markers in project (can custom markers)
     BitmapDescriptor.fromAssetImage(

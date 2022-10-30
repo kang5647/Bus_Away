@@ -33,73 +33,14 @@ class MarkerAdder {
       LatLng(1.2965127, 103.8534394); //Today FineArt
   static const LatLng museumBEA = LatLng(1.308510, 103.902871); //Black Earth
 
-  BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor cityIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor natureIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
-
   Set<Marker> markers = Set();
-
-  void setCustomMarkerIcon() {
-    //used to set the icons for our markers in project (can custom markers)
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_source.png")
-        .then(
-      (icon) {
-        this.busstopIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_city.png")
-        .then(
-      (icon) {
-        this.cityIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_nature.png")
-        .then(
-      (icon) {
-        this.natureIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_history.png")
-        .then(
-      (icon) {
-        this.culturalIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_boarding.png")
-        .then(
-      (icon) {
-        this.boardingIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(ImageConfiguration.empty,
-            "assets/mapmarker_icons/Pin_alighting.png")
-        .then(
-      (icon) {
-        this.alightingIcon = icon;
-      },
-    );
-  }
 
   get getMarkers {
     return markers;
   }
 
-  void setMarkers() {
-    //setCustomMarkerIcon();
-
+  void setStaticMarkers(BitmapDescriptor busstopIcon, BitmapDescriptor cityIcon,
+      BitmapDescriptor natureIcon, BitmapDescriptor culturalIcon) async {
     //Natural
     markers.add(Marker(
       markerId: MarkerId("naturalWNP"),
