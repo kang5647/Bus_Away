@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/weather_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Utility/app_constants.dart';
@@ -32,8 +33,6 @@ class EnterScreen extends StatefulWidget {
 
 class _EnterScreenState extends State<EnterScreen> {
   // Initial camera position for Google Maps
-  static const CameraPosition initialCameraPosition = CameraPosition(
-      target: LatLng(37.42796133580664, -122.085749655962), zoom: 14);
 
   String? _mapStyle;
   late GoogleMapController googleMapController;
@@ -42,6 +41,7 @@ class _EnterScreenState extends State<EnterScreen> {
   Timer? _timer;
   Set<Marker> markers = {};
 
+  MarkerAdder staticMarkers = MarkerAdder();
   // Function to determine the live location of the user
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -93,35 +93,63 @@ class _EnterScreenState extends State<EnterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(
-            top: 180,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child:
-                // Creating the first instance of the Google Map layer
-                GoogleMap(
-              initialCameraPosition: initialCameraPosition,
-              zoomControlsEnabled: false,
-              compassEnabled: false,
-              markers: markers,
-              onMapCreated: (GoogleMapController controller) {
-                googleMapController = controller;
-                googleMapController.setMapStyle(_mapStyle);
-              },
-            ),
-          ),
-
-          // Background image
-          blueHeader(),
-
-          // Greeting text
-          FutureBuilder(
-            future: getData(),
+        body: Stack(children: [
+      Positioned(
+        top: 180,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: FutureBuilder(
+            future: _determinePosition(),
             builder: (context, snapshot) {
-              /*
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Center(
+                      child: Text(
+                    '${snapshot.error} occurred',
+                    style: TextStyle(fontSize: 18),
+                  ));
+                } else if (snapshot.hasData) {
+                  Position myPosition = snapshot.data!;
+                  staticMarkers.setCustomMarkerIcon();
+                  staticMarkers.setMarkers();
+                  markers.add(Marker(
+                      markerId: const MarkerId("currentLocation"),
+                      position:
+                          LatLng(myPosition.latitude, myPosition.longitude)));
+                  markers.addAll(staticMarkers.getMarkers);
+                  return GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                        target: LatLng(
+                          myPosition.latitude,
+                          myPosition.longitude,
+                        ),
+                        zoom: 15.5),
+                    zoomControlsEnabled: false,
+                    compassEnabled: false,
+                    markers: markers,
+                    onMapCreated: (GoogleMapController controller) {
+                      googleMapController = controller;
+                      //googleMapController.setMapStyle(_mapStyle);
+                    },
+                  );
+                }
+              }
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }),
+      ),
+      // Creating the first instance of the Google Map layer
+
+      // Background image
+      blueHeader(),
+
+      // Greeting text
+      FutureBuilder(
+        future: getData(),
+        builder: (context, snapshot) {
+          /*
               if (snapshot.connectionState == ConnectionState.done) {
                 return buildTextField(data!.temp, data!.mainDesc);
               } else if (snapshot.connectionState == ConnectionState.waiting) {
@@ -129,54 +157,53 @@ class _EnterScreenState extends State<EnterScreen> {
                   child: CircularProgressIndicator(),
                 );
               }*/
-              return buildTextField(20.0, "Clear");
-            },
-          ),
+          return buildTextField(20.0, "Clear");
+        },
+      ),
 
-          // Bus routes
-          buildRouteSelection(),
+      // Bus routes
+      buildRouteSelection(),
 
-          // GPS current location widget on bottom right
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 35.0, right: 12.0),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.blueColor,
-                child: InkWell(
-                  onTap: () async {
-                    Position myPosition = await _determinePosition();
-                    print(myPosition);
+      // GPS current location widget on bottom right
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 35.0, right: 12.0),
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.blueColor,
+            child: InkWell(
+              onTap: () async {
+                Position myPosition = await _determinePosition();
+                print(myPosition);
 
-                    googleMapController.animateCamera(
-                        CameraUpdate.newCameraPosition(CameraPosition(
-                            target: LatLng(
-                                myPosition.latitude, myPosition.longitude),
-                            zoom: 14)));
+                googleMapController.animateCamera(
+                    CameraUpdate.newCameraPosition(CameraPosition(
+                        target:
+                            LatLng(myPosition.latitude, myPosition.longitude),
+                        zoom: 14)));
 
-                    markers.clear();
-                    markers.add(Marker(
-                        markerId: const MarkerId('currentLocation'),
-                        position:
-                            LatLng(myPosition.latitude, myPosition.longitude)));
+                markers.clear();
+                markers.addAll(staticMarkers.getMarkers);
+                /* markers.add(Marker(
+                    markerId: const MarkerId('currentLocation'),
+                    position:
+                        LatLng(myPosition.latitude, myPosition.longitude)));*/
 
-                    setState(() {});
-                  },
-                  child: const Icon(
-                    Icons.my_location,
-                    color: Colors.white,
-                  ),
-                ),
+                setState(() {});
+              },
+              child: const Icon(
+                Icons.my_location,
+                color: Colors.white,
               ),
             ),
           ),
-
-          // Bottom swipe up sheet
-          buildBottomSheet(),
-        ],
+        ),
       ),
-    );
+
+      // Bottom swipe up sheet
+      buildBottomSheet(),
+    ]));
   }
 
   @override
@@ -349,47 +376,6 @@ class _busRouteIconState extends State<busRouteIcon> {
     );
   }
 }
-
-// General code to build the different bus route icons used in the buildRouteSelection function
-// Widget busRouteIcon(String route, String picPath) {
-//   bool _iconIsClicked = false;
-//   return SizedBox(
-//     width: 82,
-//     height: 70,
-//     child: ElevatedButton(
-//       onPressed: () {
-//         //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
-//         print("clicked");
-//       },
-//       style: ElevatedButton.styleFrom(
-//           backgroundColor: AppColors.lightBlueColor.withOpacity(1.0)),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.stretch,
-//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//         children: [
-//           CircleAvatar(
-//             backgroundColor: AppColors.whiteColor.withOpacity(0.7),
-//             radius: 20,
-//             backgroundImage: ExactAssetImage(picPath),
-//           ),
-//           const SizedBox(
-//             height: 5.0,
-//           ),
-//           Align(
-//             alignment: Alignment.center,
-//             child: Text(
-//               route,
-//               style: GoogleFonts.poppins(
-//                   fontSize: 9,
-//                   fontWeight: FontWeight.bold,
-//                   color: Colors.black),
-//             ),
-//           )
-//         ],
-//       ),
-//     ),
-//   );
-// }
 
 // Code to build the greeting text at the top of the page
 Widget buildTextField(double? temp, String? mainDesc) {
