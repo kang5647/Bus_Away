@@ -1,6 +1,8 @@
+import 'package:bus_app/Views/bus_map.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'enter_screen.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Control/bus_eta_model.dart';
@@ -13,37 +15,19 @@ class Select_Bus_UI extends StatefulWidget {
 }
 
 class _Select_Bus_UIState extends State<Select_Bus_UI> {
-  Future<List> seacrhBusStopsFromFireBase(List busStopsCode) async {
-    List busStops = [];
-    for (String element in busStopsCode) {
-      final result = await FirebaseFirestore.instance
-          .collection('BusStops')
-          .where('BusStopCode', isEqualTo: element)
-          .get();
-      var busStop = result.docs.map((e) => e.data()).toList()[0];
-      busStops.add(busStop);
-    }
-
-    return busStops;
-  }
-
   Future<List> getBusStopList(String query) async {
     List busStops = [];
     List busStopsCode = [];
     final result = await FirebaseFirestore.instance
-        .collection('busRoutes')
-        .where('ServiceNo', isEqualTo: query)
-        .where('Direction', isEqualTo: 1)
-        .orderBy('Distance')
+        .collection('BusRoutes')
+        .where('BusServiceNo', isEqualTo: query)
         .get();
 
-    List busRoute = result.docs.map((e) => e.data()).toList();
+    var resultList = result.docs.map((e) => e.data()).toList();
+    var busServiceInfo = resultList[0];
 
-    for (var element in busRoute) {
-      String busStopCode = element['BusStopCode'];
-      busStopsCode.add(busStopCode);
-    }
-    busStops = await seacrhBusStopsFromFireBase(busStopsCode);
+    busStops.addAll(busServiceInfo['BusStops']);
+
     return busStops;
   }
 
@@ -72,7 +56,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                       Text(
                         widget.query,
                         style: TextStyle(
-                            fontSize: 40,
+                            fontSize: 20,
                             color: Colors.white,
                             fontWeight: FontWeight.bold),
                       ),
@@ -141,18 +125,19 @@ class _SelectionListState extends State<SelectionList> {
   late String firstSelectedValue;
   late String lastSelectedValue;
   late List<DropdownMenuItem<String>> dropdownItems;
+
   List<DropdownMenuItem<String>> getDropdownItems() {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var busStop in widget.busStopList) {
       menuItems.add(DropdownMenuItem(
         child: Text(
-          busStop['Description'],
+          busStop['BusStopName'],
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             color: AppColors.blackColor,
           ),
         ),
-        value: busStop['Description'],
+        value: busStop['BusStopName'],
       ));
     }
     return menuItems;
@@ -162,9 +147,9 @@ class _SelectionListState extends State<SelectionList> {
   void initState() {
     super.initState();
     dropdownItems = getDropdownItems();
-    firstSelectedValue = widget.busStopList[0]['Description'];
+    firstSelectedValue = widget.busStopList[0]['BusStopName'];
     lastSelectedValue =
-        widget.busStopList[widget.busStopList.length - 1]['Description'];
+        widget.busStopList[widget.busStopList.length - 1]['BusStopName'];
   }
 
   @override
@@ -259,7 +244,14 @@ class _SelectionListState extends State<SelectionList> {
               alignment: Alignment.center,
               padding: EdgeInsets.only(top: 10),
               child: TextButton(
-                  onPressed: () => {},
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BusMap(
+                                busStops: widget.busStopList,
+                                boardingStop: firstSelectedValue,
+                                alightingStop: lastSelectedValue,
+                              ))),
                   child: Text(
                     'Confirm',
                     style: TextStyle(fontSize: 18),

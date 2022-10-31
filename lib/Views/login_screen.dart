@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (user != null) {
                                   Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
-                                          builder: (context) => BusMap()));
+                                          builder: (context) => EnterScreen()));
                                 }
                               },
                             ))

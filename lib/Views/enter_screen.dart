@@ -4,8 +4,7 @@ import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/weather_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Utility/app_constants.dart';
-import 'package:bus_app/Views/bus_map2.dart';
-import 'package:bus_app/Views/bus_map3.dart';
+import 'package:bus_app/Views/bus_map.dart';
 import 'package:bus_app/Views/home_screen.dart';
 import 'package:bus_app/Views/login_screen.dart';
 import 'package:bus_app/Views/select_bus_screen.dart';
@@ -196,7 +195,7 @@ class _EnterScreenState extends State<EnterScreen> {
       ),
 
       // Bus routes
-      buildRouteSelection(),
+      buildRouteSelection(markers.toList()),
 
       // GPS current location widget on bottom right
       Align(
@@ -216,14 +215,15 @@ class _EnterScreenState extends State<EnterScreen> {
                         target:
                             LatLng(myPosition.latitude, myPosition.longitude),
                         zoom: 14)));
-
-                markers.clear();
-                markers.addAll(staticMarkers.getMarkers);
-                /* markers.add(Marker(
-                    markerId: const MarkerId('currentLocation'),
-                    position:
-                        LatLng(myPosition.latitude, myPosition.longitude)));*/
-
+                for (var marker in markers) {
+                  if (marker.markerId == MarkerId('currentLocation')) {
+                    markers.remove(marker);
+                    markers.add(Marker(
+                        markerId: MarkerId('currentLocation'),
+                        position:
+                            LatLng(myPosition.latitude, myPosition.longitude)));
+                  }
+                }
                 setState(() {});
               },
               child: const Icon(
@@ -248,7 +248,7 @@ class _EnterScreenState extends State<EnterScreen> {
 }
 
 // The code for the route selection bar as well as the circles and icons
-Widget buildRouteSelection() {
+Widget buildRouteSelection(List markers) {
   return Positioned(
     top: 100,
     left: 10,
@@ -264,25 +264,39 @@ Widget buildRouteSelection() {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: const [
-                    busRouteIcon(route: "City", picPath: "assets/city.png"),
+                  children: [
+                    busRouteIcon(
+                      route: "City",
+                      picPath: "assets/city.png",
+                      markers: markers,
+                    ),
                     SizedBox(
                       width: 8,
                     ),
 
                     busRouteIcon(
-                        route: "Heartland", picPath: "assets/house.png"),
+                      route: "Heartland",
+                      picPath: "assets/house.png",
+                      markers: markers,
+                    ),
                     //busRouteIcon("Heartland", "assets/house.png"),
                     SizedBox(
                       width: 8,
                     ),
-                    busRouteIcon(route: "Nature", picPath: "assets/nature.png"),
+                    busRouteIcon(
+                      route: "Nature",
+                      picPath: "assets/nature.png",
+                      markers: markers,
+                    ),
                     //busRouteIcon("Nature", "assets/nature.png"),
                     SizedBox(
                       width: 8,
                     ),
                     busRouteIcon(
-                        route: "Cultural", picPath: "assets/history.png"),
+                      route: "Cultural",
+                      picPath: "assets/history.png",
+                      markers: markers,
+                    ),
                     //busRouteIcon("Cultural", "assets/history.png"),
                   ],
                 ),
@@ -332,9 +346,14 @@ Widget buildBottomSheet() {
 }
 
 class busRouteIcon extends StatefulWidget {
-  const busRouteIcon({super.key, required this.route, required this.picPath});
+  const busRouteIcon(
+      {super.key,
+      required this.route,
+      required this.picPath,
+      required this.markers});
   final String route;
   final String picPath;
+  final List markers;
   @override
   State<busRouteIcon> createState() => _busRouteIconState();
 }
@@ -351,30 +370,30 @@ class _busRouteIconState extends State<busRouteIcon> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const Select_Bus_UI(query: "7")));
+                    builder: (context) => Select_Bus_UI(
+                          query: "7",
+                        )));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Heartland") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const BusMap3(query: "168")));
+                    builder: (context) => Select_Bus_UI(query: "168")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Nature") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+                    builder: (context) => Select_Bus_UI(query: "52")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Cultural") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+                    builder: (context) => Select_Bus_UI(query: "147")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
 
             print("clicked");
