@@ -18,12 +18,14 @@ class BusETAJSONHelper {
         headers: {'AccountKey': 'v5+bc4+cRje2EMII3iLWeg=='});
     if (response.statusCode == 200) {
       print("data fetched");
+      //passes data as a map
+      var etajsondata = json.decode(response.body);
+      //list to store objects in json file
+      List<BusEta> etaTimes = [];
+      etaTimes.add(BusEta.fromJson(etajsondata));
+      return etaTimes;
+    } else {
+      throw Exception('Failed to fetch data');
     }
-    //passes data as a map
-    var etajsondata = json.decode(response.body);
-    //list to store objects in json file
-    List<BusEta> etaTimes = [];
-    etaTimes.add(BusEta.fromJson(etajsondata));
-    return etaTimes;
   }
 }

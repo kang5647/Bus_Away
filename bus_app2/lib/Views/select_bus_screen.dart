@@ -1,9 +1,14 @@
+import 'package:get/get.dart';
+
+import 'package:bus_app/Control/arrival_manager.dart';
+import 'package:bus_app/Views/eta_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'enter_screen.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Control/bus_eta_model.dart';
 import 'package:bus_app/Control/bus_service.dart';
+import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 
 class Select_Bus_UI extends StatefulWidget {
   const Select_Bus_UI({super.key});
@@ -81,11 +86,39 @@ class SelectionList extends StatefulWidget {
 
 class _SelectionListState extends State<SelectionList> {
   @override
-  static BusService bus = BusService();
+  static BusService bus = BusService('7');
+  late ArrivalManager arrivalManager;
 
+  // variables for drop down list
   String dropdownvalue1 = bus.busStopName[0];
   String dropdownvalue2 = bus.busStopName.last;
   var items = bus.busStopName;
+
+  // bus stop name for boarding and alighting point
+  String boarding = bus.route.first;
+  String alighting = bus.route.last;
+
+  String findBusStopCode(String busStop) {
+    late String temp;
+    for (int i = 0; i < bus.route.length; i++) {
+      if (busStop == bus.busStopName[i]) {
+        temp = bus.route[i];
+        break;
+      }
+    }
+    return temp;
+  }
+
+  void updateBoardingAlighting(bool updateB, bool updateA, String b, String a) {
+    if (updateB) {
+      boarding = findBusStopCode(b);
+      print('Update boarding code to $boarding');
+    }
+    if (updateA) {
+      alighting = findBusStopCode(a);
+      print('Update alighting code to $alighting');
+    }
+  }
 
   Widget build(BuildContext context) {
     return Container(
@@ -140,6 +173,8 @@ class _SelectionListState extends State<SelectionList> {
                       onChanged: (String? newValue) {
                         setState(() {
                           dropdownvalue1 = newValue!;
+                          updateBoardingAlighting(
+                              true, false, dropdownvalue1, dropdownvalue2);
                         });
                       },
                     )
@@ -175,6 +210,8 @@ class _SelectionListState extends State<SelectionList> {
                       onChanged: (String? newValue) {
                         setState(() {
                           dropdownvalue2 = newValue!;
+                          updateBoardingAlighting(
+                              false, true, dropdownvalue1, dropdownvalue2);
                         });
                       },
                     )
@@ -184,11 +221,58 @@ class _SelectionListState extends State<SelectionList> {
               alignment: Alignment.center,
               padding: EdgeInsets.only(top: 10),
               child: TextButton(
-                  onPressed: () => {},
-                  child: Text(
-                    'Confirm',
-                    style: TextStyle(fontSize: 18),
-                  )),
+                child: Text(
+                  'Confirm',
+                  style: TextStyle(fontSize: 18),
+                ),
+                onPressed: () => {
+                  // if same boarding and alighting point
+                  if (boarding.compareTo(alighting) == 0)
+                    {
+                      Get.snackbar("Error",
+                          "Your Boarding Point and Alighting Point are the same.",
+                          icon: Icon(
+                            Icons.error,
+                            color: Colors.white,
+                          ),
+                          snackPosition: SnackPosition.TOP,
+                          backgroundColor: Colors.red,
+                          borderRadius: 20,
+                          margin: EdgeInsets.all(15),
+                          colorText: Colors.white)
+                      /*showDialog(
+                        context: context,
+                        builder: (context) {
+                          return 
+                          AlertDialog(
+                            title: Text("Alert"),
+                            content: Text(
+                                "Your Boarding Point and Alighting Point are the same."),
+                            actions: [
+                              TextButton(
+                                child: const Text("Noted"),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                            elevation: 24.0,
+                          );
+                        },
+                        barrierDismissible: false,
+                      )*/
+                    }
+                  else
+                    {
+                      arrivalManager = ArrivalManager(
+                          bus, bus.serviceNo, boarding, alighting),
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Bus_eta_ui(
+                                  arrivalManager: arrivalManager,
+                                  busServiceNo: "179")))
+                    }
+                },
+              ),
             ),
           ],
         ));

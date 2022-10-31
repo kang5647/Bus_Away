@@ -1,5 +1,7 @@
+import 'package:bus_app/Control/arrival_manager.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Views/enter_screen.dart';
+import 'package:bus_app/Views/select_bus_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_app/Control/bus_eta_model.dart';
 import 'package:bus_app/Control/bus_eta_control.dart';
@@ -9,12 +11,14 @@ import 'dart:async';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:bus_app/Widgets/blue_intro_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'confirmed_bus_user_screen.dart';
 
 class Bus_eta_ui extends StatefulWidget {
   const Bus_eta_ui(
-      {super.key, required this.busStopCode, required this.busServiceNo});
-  final String busStopCode;
+      {super.key, required this.busServiceNo, required this.arrivalManager});
+  //final String busStopCode;
   final String busServiceNo;
+  final ArrivalManager arrivalManager;
 
   @override
   State<Bus_eta_ui> createState() => _Bus_eta_uiState();
@@ -32,8 +36,8 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
 
     jsonHelper = BusETAJSONHelper();
     _timer = new Timer.periodic(const Duration(seconds: 30), (Timer t) {
-      final response =
-          jsonHelper.fetchServices(widget.busStopCode, widget.busServiceNo);
+      final response = jsonHelper.fetchServices(
+          widget.arrivalManager.boarding, widget.busServiceNo);
       setState(() {
         response;
       });
@@ -46,7 +50,7 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
         title: 'bus arrival timing',
         home: Scaffold(
             appBar: AppBar(
-              // title: Text("Bus arrival timings",
+              title: Text("Boarding Point"),
               //style:
               //TextStyle(color: AppColors.darkBlueColor, fontSize: 30)),
               backgroundColor: Colors.white.withOpacity(0.0),
@@ -62,12 +66,12 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
                   return IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
-                      dispose();
+                      _timer.cancel();
                       Navigator.pop(context);
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => EnterScreen()));
+                              builder: (context) => Select_Bus_UI()));
                     },
                   );
                 },
@@ -76,7 +80,7 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
             ),
             body: FutureBuilder<List<BusEta>>(
               future: jsonHelper.fetchServices(
-                  widget.busStopCode, widget.busServiceNo),
+                  widget.arrivalManager.boarding, widget.busServiceNo),
               builder: (context, snapshot) {
                 //updateBusArrTimings();
                 if (snapshot.hasError) {
@@ -84,7 +88,9 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
                     child: Text('An error has occured'),
                   );
                 } else if (snapshot.hasData) {
-                  return BusServiceList(busServiceList: snapshot.data!);
+                  return BusServiceList(
+                      busServiceList: snapshot.data!,
+                      arrivalManager: widget.arrivalManager);
                 } else {
                   return const Center(
                     child: CircularProgressIndicator(),
@@ -103,8 +109,10 @@ class _Bus_eta_uiState extends State<Bus_eta_ui> {
 
 //where we display the eta and bus load
 class BusServiceList extends StatefulWidget {
-  const BusServiceList({super.key, required this.busServiceList});
+  const BusServiceList(
+      {super.key, required this.busServiceList, required this.arrivalManager});
   final List<BusEta> busServiceList;
+  final ArrivalManager arrivalManager;
 
   @override
   State<BusServiceList> createState() => _BusServiceListState();
@@ -140,7 +148,7 @@ class _BusServiceListState extends State<BusServiceList> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(Icons.bus_alert_outlined, size: 50.0),
                 Text(
@@ -150,17 +158,18 @@ class _BusServiceListState extends State<BusServiceList> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold),
                 ),
-                Text(
+                /*Text(
                   "-",
                   style: TextStyle(
                       fontSize: 40,
                       color: Colors.white,
                       fontWeight: FontWeight.bold),
-                ),
+                ),*/
                 Text(
-                  widget.busServiceList[0].busStopCode,
+                  widget.arrivalManager.bus
+                      .busStopName[widget.arrivalManager.curIndex],
                   style: TextStyle(
-                      fontSize: 40,
+                      fontSize: 28,
                       color: Colors.black54,
                       fontWeight: FontWeight.bold),
                 ),
@@ -183,7 +192,15 @@ class _BusServiceListState extends State<BusServiceList> {
                         backgroundColor: AppColors.blueColor,
                         //fixedSize : Size(),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Confirmed_info(
+                                    busServiceNo: '179',
+                                    arrivalManager: widget.arrivalManager,
+                                    busChoice: 1)));
+                      },
                       child: Column(
                         children: [
                           wheelchair_indicator(widget
@@ -208,7 +225,15 @@ class _BusServiceListState extends State<BusServiceList> {
                         backgroundColor: AppColors.blueColor,
                         //fixedSize : Size(),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Confirmed_info(
+                                    busServiceNo: '179',
+                                    arrivalManager: widget.arrivalManager,
+                                    busChoice: 2)));
+                      },
                       child: Column(
                         children: [
                           wheelchair_indicator(widget

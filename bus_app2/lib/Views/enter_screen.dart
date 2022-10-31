@@ -294,27 +294,18 @@ class _BusRouteIconState extends State<BusRouteIcon> {
             print("clicked");
           } else if (widget.route == "Heartland") {
             _timer?.cancel();
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        Bus_eta_ui(busStopCode: "83139", busServiceNo: "15")));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => Select_Bus_UI()));
             print("clicked");
           } else if (widget.route == "Nature") {
             _timer?.cancel();
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => Select_Bus_UI()));
             print("clicked");
           } else if (widget.route == "Cultural") {
             _timer?.cancel();
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        Bus_eta_ui(busStopCode: "22009", busServiceNo: "179")));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => Select_Bus_UI()));
 
             print("clicked");
           }
