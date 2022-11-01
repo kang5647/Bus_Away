@@ -1,8 +1,10 @@
+import 'package:bus_app/Control/arrival_manager.dart';
 import 'package:bus_app/Views/bus_map.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'confirmed_bus_user_screen.dart';
 import 'enter_screen.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Control/bus_eta_model.dart';
@@ -102,6 +104,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                     List busStopList = snapshot.data!;
                     return SelectionList(
                       busStopList: busStopList,
+                      busServiceNo: widget.query,
                     );
                   }
                 }
@@ -114,9 +117,10 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
 }
 
 class SelectionList extends StatefulWidget {
-  const SelectionList({super.key, required this.busStopList});
+  const SelectionList(
+      {super.key, required this.busStopList, required this.busServiceNo});
   final List busStopList;
-
+  final String busServiceNo;
   @override
   State<SelectionList> createState() => _SelectionListState();
 }
@@ -124,6 +128,8 @@ class SelectionList extends StatefulWidget {
 class _SelectionListState extends State<SelectionList> {
   late String firstSelectedValue;
   late String lastSelectedValue;
+  late ArrivalManager arrivalManager;
+
   late List<DropdownMenuItem<String>> dropdownItems;
 
   List<DropdownMenuItem<String>> getDropdownItems() {
@@ -244,14 +250,19 @@ class _SelectionListState extends State<SelectionList> {
               alignment: Alignment.center,
               padding: EdgeInsets.only(top: 10),
               child: TextButton(
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => BusMap(
-                                busStops: widget.busStopList,
-                                boardingStop: firstSelectedValue,
-                                alightingStop: lastSelectedValue,
-                              ))),
+                  onPressed: () => {
+                        arrivalManager = ArrivalManager(
+                            widget.busStopList,
+                            firstSelectedValue,
+                            lastSelectedValue,
+                            widget.busServiceNo),
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Confirmed_info(
+                                    arrivalManager: arrivalManager,
+                                    busServiceNo: widget.busServiceNo)))
+                      },
                   child: Text(
                     'Confirm',
                     style: TextStyle(fontSize: 18),

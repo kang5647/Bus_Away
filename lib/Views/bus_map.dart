@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:bus_app/Control/add_markers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animarker/core/animarker_controller_description.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:bus_app/Constant/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:flutter_animarker/flutter_map_marker_animation.dart';
+
+import 'package:flutter_animarker/widgets/animarker.dart';
 
 class BusMap extends StatefulWidget {
   const BusMap(
@@ -36,7 +41,8 @@ class BusMapState extends State<BusMap> {
   BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
   MarkerAdder staticMarkers = MarkerAdder();
 
-  Set<Marker> markers = Set();
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
   Set<Polyline> _polylines = Set();
   List _busStopCoordinates = [];
 
@@ -88,64 +94,36 @@ class BusMapState extends State<BusMap> {
     }
     for (int i = boardingIndex; i < alightingIndex + 1; i++) {
       var busStop = busStops[i];
-      Marker marker;
+      var marker;
       if (i == boardingIndex) {
-        marker = Marker(
-          markerId: MarkerId(busStop['BusStopCode']),
-          icon: boardingIcon,
-          position: LatLng(busStop['Latitude'], busStop['Longitude']),
-        );
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            markerId: busMarkerID,
+            icon: boardingIcon,
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
       } else if (i == alightingIndex) {
-        marker = Marker(
-          icon: alightingIcon,
-          markerId: MarkerId(busStop['BusStopCode']),
-          position: LatLng(busStop['Latitude'], busStop['Longitude']),
-        );
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            icon: alightingIcon,
+            markerId: busMarkerID,
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
       } else {
-        marker = Marker(
-          icon: busstopIcon,
-          markerId: MarkerId(busStop['BusStopCode']),
-          position: LatLng(busStop['Latitude'], busStop['Longitude']),
-        );
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            icon: busstopIcon,
+            markerId: busMarkerID,
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
       }
-      markers.add(marker);
-    }
-  }
-
-  void getPolyPoints() async {
-    Polyline polyline;
-    PolylinePoints _polylinePoints = PolylinePoints();
-    for (int i = 0; i < _busStopCoordinates.length; i++) {
-      List<LatLng> polylineCoordinates = [];
-      int nextIndex = i + 1;
-      if (nextIndex == _busStopCoordinates.length) {
-        break;
-      }
-
-      PolylineResult result = await _polylinePoints.getRouteBetweenCoordinates(
-          google_api_key,
-          PointLatLng(_busStopCoordinates[i]['latitude'],
-              _busStopCoordinates[i]['longitude']),
-          PointLatLng(_busStopCoordinates[nextIndex]['latitude'],
-              _busStopCoordinates[nextIndex]['longitude']),
-          travelMode: TravelMode.transit);
-
-      if (result.points.isNotEmpty) {
-        result.points.forEach((PointLatLng point) => polylineCoordinates.add(
-              LatLng(point.latitude, point.longitude),
-            ));
-      }
-
-      setState(() {
-        polyline = Polyline(
-          polylineId: PolylineId("route"),
-          points: polylineCoordinates,
-          color: Colors.blue,
-          width: 4,
-          geodesic: false,
-        );
-        _polylines.add(polyline);
-      });
+      markers.addAll(marker);
     }
   }
 
@@ -169,11 +147,12 @@ class BusMapState extends State<BusMap> {
             future: setMarkers(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.data == null)
-                  return Center(
+                if (snapshot.data == null) {
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
-                if (snapshot.data == true)
+                }
+                if (snapshot.data == true) {
                   return GoogleMap(
                     initialCameraPosition: CameraPosition(
                         target: LatLng(
@@ -182,12 +161,13 @@ class BusMapState extends State<BusMap> {
                         zoom: 13.0),
                     myLocationButtonEnabled: true,
                     zoomControlsEnabled: false,
-                    markers: markers,
                     // polylines: _polylines,
                     onMapCreated: onMapCreated,
+                    markers: markers.values.toSet(),
                   );
+                }
               }
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }));

@@ -33,8 +33,8 @@ class MarkerAdder {
       LatLng(1.2965127, 103.8534394); //Today FineArt
   static const LatLng museumBEA = LatLng(1.308510, 103.902871); //Black Earth
 
-  Set<Marker> markers = Set();
-
+  //<Marker> markers = Set();
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   get getMarkers {
     return markers;
   }
@@ -42,119 +42,143 @@ class MarkerAdder {
   void setStaticMarkers(BitmapDescriptor busstopIcon, BitmapDescriptor cityIcon,
       BitmapDescriptor natureIcon, BitmapDescriptor culturalIcon) async {
     //Natural
-    markers.add(Marker(
-      markerId: MarkerId("naturalWNP"),
-      icon: natureIcon,
-      position: naturalWNP,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("naturalBBC"),
-      icon: natureIcon,
-      position: naturalBBC,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("naturalMRC"),
-      icon: natureIcon,
-      position: naturalMRC,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("naturalLBS"),
-      icon: natureIcon,
-      position: naturalLBS,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("naturalKKG"),
-      icon: natureIcon,
-      position: naturalKKG,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("naturalKHP"),
-      icon: natureIcon,
-      position: naturalKHP,
-    ));
+    var naturalMarker1 = {
+      MarkerId("naturalWNP"): Marker(
+          markerId: MarkerId("naturalWNP"),
+          icon: natureIcon,
+          position: naturalWNP),
+    };
+    var naturalMarker2 = {
+      MarkerId("naturalBBC"): Marker(
+          markerId: MarkerId("naturalBBC"),
+          icon: natureIcon,
+          position: naturalBBC),
+    };
+    var naturalMarker3 = {
+      MarkerId("naturalMRC"): Marker(
+          markerId: MarkerId("naturalMRC"),
+          icon: natureIcon,
+          position: naturalMRC),
+    };
+    var naturalMarker4 = {
+      MarkerId("naturalLBS"): Marker(
+          markerId: MarkerId("naturalLBS"),
+          icon: natureIcon,
+          position: naturalLBS),
+    };
+    var naturalMarker5 = {
+      MarkerId("naturalKKG"): Marker(
+          markerId: MarkerId("naturalKKG"),
+          icon: natureIcon,
+          position: naturalKKG),
+    };
+    var naturalMarker6 = {
+      MarkerId("naturalKHP"): Marker(
+          markerId: MarkerId("naturalKHP"),
+          icon: natureIcon,
+          position: naturalKHP),
+    };
+
+    markers.addAll(naturalMarker1);
+    markers.addAll(naturalMarker2);
+    markers.addAll(naturalMarker3);
+    markers.addAll(naturalMarker4);
+    markers.addAll(naturalMarker5);
+    markers.addAll(naturalMarker6);
 
     //City
-    markers.add(Marker(
-      markerId: MarkerId("cbdION"),
-      icon: cityIcon,
-      position: cbdION,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdOT"),
-      icon: cityIcon,
-      position: cbdOT,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbd313"),
-      icon: cityIcon,
-      position: cbd313,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdDG"),
-      icon: cityIcon,
-      position: cbdDG,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdBB"),
-      icon: cityIcon,
-      position: cbdBB,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdCH"),
-      icon: cityIcon,
-      position: cbdCH,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdBP"),
-      icon: cityIcon,
-      position: cbdBP,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdST"),
-      icon: cityIcon,
-      position: cbdST,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("cbdLV"),
-      icon: cityIcon,
-      position: cbdLV,
-    ));
+    var cityMarker1 = {
+      MarkerId("cbdION"): Marker(
+          markerId: MarkerId("cbdION"), icon: cityIcon, position: cbdION),
+    };
+    var cityMarker2 = {
+      MarkerId("cbdOT"):
+          Marker(markerId: MarkerId("cbdOT"), icon: cityIcon, position: cbdOT),
+    };
+    var cityMarker3 = {
+      MarkerId("cbd313"): Marker(
+          markerId: MarkerId("cbd313"), icon: cityIcon, position: cbd313),
+    };
+    var cityMarker4 = {
+      MarkerId("cbdDG"):
+          Marker(markerId: MarkerId("cbdDG"), icon: cityIcon, position: cbdDG),
+    };
+    var cityMarker5 = {
+      MarkerId("cbdCH"):
+          Marker(markerId: MarkerId("cbdCH"), icon: cityIcon, position: cbdCH),
+    };
+    var cityMarker6 = {
+      MarkerId("cbdBP"):
+          Marker(markerId: MarkerId("cbdBP"), icon: cityIcon, position: cbdBP),
+    };
+    var cityMarker7 = {
+      MarkerId("cbdST"): Marker(
+          markerId: MarkerId("cbdST"), icon: cityIcon, position: naturalWNP),
+    };
+    var cityMarker8 = {
+      MarkerId("cbdLV"):
+          Marker(markerId: MarkerId("cbdLV"), icon: cityIcon, position: cbdLV),
+    };
+    markers.addAll(cityMarker1);
+    markers.addAll(cityMarker2);
+    markers.addAll(cityMarker3);
+    markers.addAll(cityMarker4);
+    markers.addAll(cityMarker5);
+    markers.addAll(cityMarker6);
+    markers.addAll(cityMarker7);
+    markers.addAll(cityMarker8);
 
     //Cultural
-    markers.add(Marker(
-      markerId: MarkerId("museumFOM"),
-      icon: culturalIcon,
-      position: museumFOM,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumNM"),
-      icon: culturalIcon,
-      position: museumNM,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumNG"),
-      icon: culturalIcon,
-      position: museumNG,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumSCDF"),
-      icon: culturalIcon,
-      position: museumSCDF,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumAHG"),
-      icon: culturalIcon,
-      position: museumAHG,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumTFA"),
-      icon: culturalIcon,
-      position: museumTFA,
-    ));
-    markers.add(Marker(
-      markerId: MarkerId("museumBEA"),
-      icon: culturalIcon,
-      position: museumBEA,
-    ));
+    var museumMarker1 = {
+      MarkerId("museumFOM"): Marker(
+          markerId: MarkerId("museumFOM"),
+          icon: culturalIcon,
+          position: museumFOM),
+    };
+
+    var museumMarker2 = {
+      MarkerId("museumNM"): Marker(
+          markerId: MarkerId("museumNM"),
+          icon: culturalIcon,
+          position: museumNM),
+    };
+    var museumMarker3 = {
+      MarkerId("museumNG"): Marker(
+          markerId: MarkerId("museumNG"),
+          icon: culturalIcon,
+          position: museumNG),
+    };
+    var museumMarker4 = {
+      MarkerId("museumSCDF"): Marker(
+          markerId: MarkerId("museumSCDF"),
+          icon: culturalIcon,
+          position: museumSCDF),
+    };
+    var museumMarker5 = {
+      MarkerId("museumAHG"): Marker(
+          markerId: MarkerId("museumAHG"),
+          icon: culturalIcon,
+          position: museumAHG),
+    };
+    var museumMarker6 = {
+      MarkerId("museumTFA"): Marker(
+          markerId: MarkerId("museumTFA"),
+          icon: culturalIcon,
+          position: museumTFA),
+    };
+    var museumMarker7 = {
+      MarkerId("museumBEA"): Marker(
+          markerId: MarkerId("museumBEA"),
+          icon: culturalIcon,
+          position: museumBEA),
+    };
+
+    markers.addAll(museumMarker1);
+    markers.addAll(museumMarker2);
+    markers.addAll(museumMarker3);
+    markers.addAll(museumMarker4);
+    markers.addAll(museumMarker5);
+    markers.addAll(museumMarker6);
+    markers.addAll(museumMarker7);
   }
 }

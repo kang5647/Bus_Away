@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/weather_control.dart';
@@ -16,12 +17,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_animarker/core/ripple_marker.dart';
+import 'package:flutter_animarker/flutter_map_marker_animation.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:bus_app/Views/eta_screen.dart';
+import 'package:location/location.dart';
 
 class EnterScreen extends StatefulWidget {
   const EnterScreen({super.key});
@@ -34,11 +37,13 @@ class _EnterScreenState extends State<EnterScreen> {
   // Initial camera position for Google Maps
 
   String? _mapStyle;
+  final Completer<GoogleMapController> _controller = Completer();
   late GoogleMapController googleMapController;
+
   WeatherApiClient client = WeatherApiClient();
   Weather? data;
   Timer? _timer;
-  Set<Marker> markers = {};
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
   MarkerAdder staticMarkers = MarkerAdder();
   BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
@@ -47,8 +52,12 @@ class _EnterScreenState extends State<EnterScreen> {
   BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor mylocationIcon = BitmapDescriptor.defaultMarker;
   bool isSetupReady = false;
 
+  Location myLocation = new Location();
+
+  late MarkerId locationMarkerID;
   void setCustomMarkerIcon() async {
     //used to set the icons for our markers in project (can custom markers)
     busstopIcon = await BitmapDescriptor.fromAssetImage(
@@ -62,6 +71,9 @@ class _EnterScreenState extends State<EnterScreen> {
 
     culturalIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration.empty, "assets/mapmarker_icons/Pin_history.png");
+
+    mylocationIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Badge.png");
 
     staticMarkers.setStaticMarkers(
         busstopIcon, cityIcon, natureIcon, culturalIcon);
@@ -124,6 +136,7 @@ class _EnterScreenState extends State<EnterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsFlutterBinding.ensureInitialized;
     return Scaffold(
         body: Stack(children: [
       Positioned(
@@ -132,38 +145,44 @@ class _EnterScreenState extends State<EnterScreen> {
         right: 0,
         bottom: 0,
         child: FutureBuilder(
-            future: _determinePosition(),
+            future: myLocation.getLocation(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasError) {
                   return Center(
                       child: Text(
                     '${snapshot.error} occurred',
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ));
                 } else if (snapshot.hasData) {
-                  Position myPosition = snapshot.data!;
-                  markers.add(Marker(
-                      markerId: const MarkerId("currentLocation"),
-                      position:
-                          LatLng(myPosition.latitude, myPosition.longitude)));
+                  LocationData currentLocation = snapshot.data!;
+                  print("$currentLocation.latitude $currentLocation.longitude");
+                  locationMarkerID = MarkerId("currentLocation");
+                  var marker = {
+                    locationMarkerID: Marker(
+                        markerId: locationMarkerID,
+                        position: LatLng(currentLocation.latitude!,
+                            currentLocation.longitude!),
+                        icon: mylocationIcon)
+                  };
+                  markers.addAll(marker);
                   return isSetupReady
                       ? GoogleMap(
                           initialCameraPosition: CameraPosition(
                               target: LatLng(
-                                myPosition.latitude,
-                                myPosition.longitude,
+                                currentLocation.latitude!,
+                                currentLocation.longitude!,
                               ),
                               zoom: 15.5),
                           zoomControlsEnabled: false,
                           compassEnabled: false,
-                          markers: markers,
+                          markers: markers.values.toSet(),
                           onMapCreated: (GoogleMapController controller) {
                             googleMapController = controller;
-                            //googleMapController.setMapStyle(_mapStyle);
+                            _controller.complete(controller);
                           },
                         )
-                      : Center(
+                      : const Center(
                           child: Text('Loading Maps...'),
                         );
                 }
@@ -179,52 +198,41 @@ class _EnterScreenState extends State<EnterScreen> {
       blueHeader(),
 
       // Greeting text
-      FutureBuilder(
+      /* FutureBuilder(
         future: getData(),
         builder: (context, snapshot) {
-          /*
-              if (snapshot.connectionState == ConnectionState.done) {
-                return buildTextField(data!.temp, data!.mainDesc);
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }*/
           return buildTextField(20.0, "Clear");
         },
-      ),
+      ),*/
 
       // Bus routes
-      buildRouteSelection(markers.toList()),
+      buildRouteSelection(),
 
       // GPS current location widget on bottom right
       Align(
         alignment: Alignment.bottomRight,
         child: Padding(
-          padding: EdgeInsets.only(bottom: 35.0, right: 12.0),
+          padding: const EdgeInsets.only(bottom: 35.0, right: 12.0),
           child: CircleAvatar(
             radius: 20,
             backgroundColor: AppColors.blueColor,
             child: InkWell(
               onTap: () async {
-                Position myPosition = await _determinePosition();
-                print(myPosition);
-
-                googleMapController.animateCamera(
-                    CameraUpdate.newCameraPosition(CameraPosition(
-                        target:
-                            LatLng(myPosition.latitude, myPosition.longitude),
-                        zoom: 14)));
-                for (var marker in markers) {
-                  if (marker.markerId == MarkerId('currentLocation')) {
-                    markers.remove(marker);
-                    markers.add(Marker(
-                        markerId: MarkerId('currentLocation'),
-                        position:
-                            LatLng(myPosition.latitude, myPosition.longitude)));
-                  }
-                }
-                setState(() {});
+                LocationData currentLocation = await myLocation.getLocation();
+                setState(() {
+                  googleMapController.animateCamera(
+                      CameraUpdate.newCameraPosition(CameraPosition(
+                          target: LatLng(currentLocation.latitude!,
+                              currentLocation.longitude!),
+                          zoom: 14)));
+                  var marker = Marker(
+                    markerId: locationMarkerID,
+                    position: LatLng(
+                        currentLocation.latitude!, currentLocation.longitude!),
+                    icon: mylocationIcon,
+                  );
+                  markers[locationMarkerID] = marker;
+                });
               },
               child: const Icon(
                 Icons.my_location,
@@ -248,7 +256,7 @@ class _EnterScreenState extends State<EnterScreen> {
 }
 
 // The code for the route selection bar as well as the circles and icons
-Widget buildRouteSelection(List markers) {
+Widget buildRouteSelection() {
   return Positioned(
     top: 100,
     left: 10,
@@ -264,11 +272,10 @@ Widget buildRouteSelection(List markers) {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+                  children: const [
                     busRouteIcon(
                       route: "City",
                       picPath: "assets/city.png",
-                      markers: markers,
                     ),
                     SizedBox(
                       width: 8,
@@ -277,7 +284,6 @@ Widget buildRouteSelection(List markers) {
                     busRouteIcon(
                       route: "Heartland",
                       picPath: "assets/house.png",
-                      markers: markers,
                     ),
                     //busRouteIcon("Heartland", "assets/house.png"),
                     SizedBox(
@@ -286,7 +292,6 @@ Widget buildRouteSelection(List markers) {
                     busRouteIcon(
                       route: "Nature",
                       picPath: "assets/nature.png",
-                      markers: markers,
                     ),
                     //busRouteIcon("Nature", "assets/nature.png"),
                     SizedBox(
@@ -295,7 +300,6 @@ Widget buildRouteSelection(List markers) {
                     busRouteIcon(
                       route: "Cultural",
                       picPath: "assets/history.png",
-                      markers: markers,
                     ),
                     //busRouteIcon("Cultural", "assets/history.png"),
                   ],
@@ -346,14 +350,14 @@ Widget buildBottomSheet() {
 }
 
 class busRouteIcon extends StatefulWidget {
-  const busRouteIcon(
-      {super.key,
-      required this.route,
-      required this.picPath,
-      required this.markers});
+  const busRouteIcon({
+    super.key,
+    required this.route,
+    required this.picPath,
+  });
   final String route;
   final String picPath;
-  final List markers;
+
   @override
   State<busRouteIcon> createState() => _busRouteIconState();
 }
@@ -370,7 +374,7 @@ class _busRouteIconState extends State<busRouteIcon> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => Select_Bus_UI(
+                    builder: (context) => const Select_Bus_UI(
                           query: "7",
                         )));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
@@ -379,21 +383,21 @@ class _busRouteIconState extends State<busRouteIcon> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => Select_Bus_UI(query: "168")));
+                    builder: (context) => const Select_Bus_UI(query: "168")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Nature") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => Select_Bus_UI(query: "52")));
+                    builder: (context) => const Select_Bus_UI(query: "52")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Cultural") {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => Select_Bus_UI(query: "147")));
+                    builder: (context) => const Select_Bus_UI(query: "147")));
             //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
 
             print("clicked");
@@ -484,7 +488,7 @@ Widget bottomSheetControl() {
   return Container(
     width: Get.width,
     height: Get.height * 0.3,
-    decoration: BoxDecoration(
+    decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12), topRight: Radius.circular(12)),
         color: Colors.white),
@@ -497,7 +501,7 @@ Widget bottomSheetControl() {
             const SizedBox(
               height: 10,
             ),
-            Text(
+            const Text(
               "Settings",
               style: TextStyle(
                   color: Colors.black,
@@ -507,7 +511,7 @@ Widget bottomSheetControl() {
             const SizedBox(
               height: 20,
             ),
-            Text(
+            const Text(
               "Logins",
               style: TextStyle(
                   color: Colors.black,
@@ -520,7 +524,7 @@ Widget bottomSheetControl() {
             Container(
               width: Get.width,
               height: 50,
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
@@ -533,10 +537,10 @@ Widget bottomSheetControl() {
               ),
               child: InkWell(
                 onTap: () {
-                  Get.to(() => HomeScreen());
+                  Get.to(() => const HomeScreen());
                 },
                 child: Row(
-                  children: [
+                  children: const [
                     Text(
                       "Log Out",
                       style: TextStyle(
@@ -591,7 +595,7 @@ Widget buildWeatherIcon(double? temp, String? mainDesc) {
           ),
           Text(
             "${temp!.toPrecision(1)}°",
-            style: TextStyle(fontSize: 12, fontStyle: FontStyle.normal),
+            style: const TextStyle(fontSize: 12, fontStyle: FontStyle.normal),
           )
         ],
       ),
