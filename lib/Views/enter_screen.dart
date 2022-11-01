@@ -26,6 +26,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 
+Timer? _timer;
+
 class EnterScreen extends StatefulWidget {
   const EnterScreen({super.key});
 
@@ -42,7 +44,7 @@ class _EnterScreenState extends State<EnterScreen> {
 
   WeatherApiClient client = WeatherApiClient();
   Weather? data;
-  Timer? _timer;
+
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
   MarkerAdder staticMarkers = MarkerAdder();
@@ -198,12 +200,12 @@ class _EnterScreenState extends State<EnterScreen> {
       blueHeader(),
 
       // Greeting text
-      /* FutureBuilder(
+      FutureBuilder(
         future: getData(),
         builder: (context, snapshot) {
           return buildTextField(20.0, "Clear");
         },
-      ),*/
+      ),
 
       // Bus routes
       buildRouteSelection(),
@@ -278,7 +280,7 @@ Widget buildRouteSelection() {
                       picPath: "assets/city.png",
                     ),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
 
                     busRouteIcon(
@@ -287,7 +289,7 @@ Widget buildRouteSelection() {
                     ),
                     //busRouteIcon("Heartland", "assets/house.png"),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
                     busRouteIcon(
                       route: "Nature",
@@ -295,7 +297,7 @@ Widget buildRouteSelection() {
                     ),
                     //busRouteIcon("Nature", "assets/nature.png"),
                     SizedBox(
-                      width: 8,
+                      width: 45,
                     ),
                     busRouteIcon(
                       route: "Cultural",
@@ -365,53 +367,49 @@ class busRouteIcon extends StatefulWidget {
 class _busRouteIconState extends State<busRouteIcon> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 82,
-      height: 70,
-      child: ElevatedButton(
-        onPressed: () {
+    return Container(
+      child: InkWell(
+        onTap: () {
           if (widget.route == "City") {
+            _timer?.cancel();
+
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const Select_Bus_UI(
                           query: "7",
                         )));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
+
             print("clicked");
           } else if (widget.route == "Heartland") {
+            _timer?.cancel();
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const Select_Bus_UI(query: "168")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Nature") {
+            _timer?.cancel();
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const Select_Bus_UI(query: "52")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
             print("clicked");
           } else if (widget.route == "Cultural") {
+            _timer?.cancel();
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const Select_Bus_UI(query: "147")));
-            //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
 
             print("clicked");
           }
         },
-        style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.lightBlueColor.withOpacity(1.0)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             CircleAvatar(
-              backgroundColor: AppColors.whiteColor.withOpacity(0.7),
-              radius: 23,
+              backgroundColor: AppColors.lightBlueColor.withOpacity(0.7),
+              radius: 26,
               backgroundImage: ExactAssetImage(widget.picPath),
             ),
             const SizedBox(
@@ -422,8 +420,8 @@ class _busRouteIconState extends State<busRouteIcon> {
               child: Text(
                 widget.route,
                 style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
                     color: Colors.black),
               ),
             )
@@ -432,6 +430,75 @@ class _busRouteIconState extends State<busRouteIcon> {
       ),
     );
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   return SizedBox(
+  //     width: 82,
+  //     height: 70,
+  //     child: ElevatedButton(
+  //       onPressed: () {
+  //         if (widget.route == "City") {
+  //           Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                   builder: (context) => const Select_Bus_UI(
+  //                         query: "7",
+  //                       )));
+  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
+  //           print("clicked");
+  //         } else if (widget.route == "Heartland") {
+  //           Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                   builder: (context) => const Select_Bus_UI(query: "168")));
+  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
+  //           print("clicked");
+  //         } else if (widget.route == "Nature") {
+  //           Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                   builder: (context) => const Select_Bus_UI(query: "52")));
+  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
+  //           print("clicked");
+  //         } else if (widget.route == "Cultural") {
+  //           Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                   builder: (context) => const Select_Bus_UI(query: "147")));
+  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
+
+  //           print("clicked");
+  //         }
+  //       },
+  //       style: ElevatedButton.styleFrom(
+  //           backgroundColor: AppColors.lightBlueColor.withOpacity(1.0)),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //         children: [
+  //           CircleAvatar(
+  //             backgroundColor: AppColors.whiteColor.withOpacity(0.7),
+  //             radius: 23,
+  //             backgroundImage: ExactAssetImage(widget.picPath),
+  //           ),
+  //           const SizedBox(
+  //             height: 5.0,
+  //           ),
+  //           Align(
+  //             alignment: Alignment.center,
+  //             child: Text(
+  //               widget.route,
+  //               style: GoogleFonts.poppins(
+  //                   fontSize: 9,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: Colors.black),
+  //             ),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 // Code to build the greeting text at the top of the page

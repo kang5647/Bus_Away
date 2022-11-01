@@ -82,7 +82,7 @@ class ArrivalManager {
   // if arrival then update the bus stop code
   Future<bool> updateCurStop() async {
     DateTime est;
-    String nextStop = busStopList[curIndex + 1];
+    String nextStop = busStopList[curIndex + 1]['BusStopCode'];
     est = await updateArrival(nextStop);
     int i = 0;
     while (!checkArrival(est)) {

@@ -62,9 +62,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
         title: 'bus arrival timing',
         home: Scaffold(
             appBar: AppBar(
-              // title: Text("Bus arrival timings",
-              //style:
-              //TextStyle(color: AppColors.darkBlueColor, fontSize: 30)),
+              title: Text("Bus arrival timings",
+                  style: TextStyle(color: AppColors.blackColor, fontSize: 25)),
               backgroundColor: Colors.white.withOpacity(0.0),
               flexibleSpace: Container(
                 decoration: BoxDecoration(
