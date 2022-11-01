@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bus_app/Control/add_markers.dart';
+import 'package:bus_app/Control/arrival_manager.dart';
+import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animarker/core/animarker_controller_description.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -16,9 +18,11 @@ import 'package:flutter_animarker/widgets/animarker.dart';
 class BusMap extends StatefulWidget {
   const BusMap(
       {super.key,
+      required this.serviceNo,
       required this.busStops,
       required this.boardingStop,
       required this.alightingStop});
+  final String serviceNo;
   final List busStops;
   final String boardingStop;
   final String alightingStop;
@@ -153,17 +157,33 @@ class BusMapState extends State<BusMap> {
                   );
                 }
                 if (snapshot.data == true) {
-                  return GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                            widget.busStops[boardingIndex]['Latitude'],
-                            widget.busStops[alightingIndex]['Longitude']),
-                        zoom: 13.0),
-                    myLocationButtonEnabled: true,
-                    zoomControlsEnabled: false,
-                    // polylines: _polylines,
-                    onMapCreated: onMapCreated,
-                    markers: markers.values.toSet(),
+                  ArrivalManager arrivalManager = ArrivalManager(
+                      widget.busStops,
+                      widget.boardingStop,
+                      widget.alightingStop,
+                      widget.serviceNo);
+                  return Stack(
+                    children: [
+                      GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                            target: LatLng(
+                                widget.busStops[boardingIndex]['Latitude'],
+                                widget.busStops[alightingIndex]['Longitude']),
+                            zoom: 13.0),
+                        myLocationButtonEnabled: true,
+                        zoomControlsEnabled: false,
+                        // polylines: _polylines,
+                        onMapCreated: onMapCreated,
+                        markers: markers.values.toSet(),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Confirmed_info(
+                          arrivalManager: arrivalManager,
+                          busServiceNo: widget.serviceNo,
+                        ),
+                      ),
+                    ],
                   );
                 }
               }

@@ -203,6 +203,13 @@ class _EnterScreenState extends State<EnterScreen> {
       FutureBuilder(
         future: getData(),
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return buildTextField(data!.temp, data!.mainDesc);
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           return buildTextField(20.0, "Clear");
         },
       ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:ui';
 
 import 'package:bus_app/Views/bus_arrived_screen.dart';
 import 'package:bus_app/Views/select_bus_screen.dart';
@@ -58,59 +59,26 @@ class _Confirmed_infoState extends State<Confirmed_info> {
   Widget build(BuildContext context) {
     futureBusService = jsonHelper.fetchServices(
         widget.arrivalManager.boarding, widget.busServiceNo);
-    return MaterialApp(
-        title: 'bus arrival timing',
-        home: Scaffold(
-            appBar: AppBar(
-              title: Text("Bus arrival timings",
-                  style: TextStyle(color: AppColors.blackColor, fontSize: 25)),
-              backgroundColor: Colors.white.withOpacity(0.0),
-              flexibleSpace: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage('assets/backGround1.png'),
-                      fit: BoxFit.cover),
-                ),
-              ),
-              leading: Builder(
-                builder: (BuildContext context) {
-                  return IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      mytimer.cancel();
-                      Navigator.pop(context);
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Select_Bus_UI(
-                                    query: widget.busServiceNo,
-                                  )));
-                    },
-                  );
-                },
-              ),
-              //title: const Text('bus arrival'),
-            ),
-            body: FutureBuilder<List<BusEta>>(
-              future: futureBusService,
-              builder: (context, snapshot) {
-                //updateBusArrTimings();
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('An error has occured'),
-                  );
-                } else if (snapshot.hasData) {
-                  return Info_display(
-                    busServiceList: snapshot.data!,
-                    arrivalManager: widget.arrivalManager,
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              },
-            )));
+    return FutureBuilder<List<BusEta>>(
+      future: futureBusService,
+      builder: (context, snapshot) {
+        //updateBusArrTimings();
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text('An error has occured'),
+          );
+        } else if (snapshot.hasData) {
+          return Info_display(
+            busServiceList: snapshot.data!,
+            arrivalManager: widget.arrivalManager,
+          );
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
+    );
   }
 }
 
@@ -125,6 +93,36 @@ class Info_display extends StatefulWidget {
 }
 
 class _Info_displayState extends State<Info_display> {
+  OverlayEntry? entry;
+
+  void showOverlay() {
+    final overlay = Overlay.of(context)!;
+
+    entry = OverlayEntry(
+        builder: (context) => Positioned(
+                child: Scaffold(
+                    body: Stack(
+              children: [
+                busArrivedScreen(
+                    busNo: widget.arrivalManager.busServiceNo,
+                    alighting: widget.arrivalManager.alighting,
+                    boarding: widget.arrivalManager.boarding,
+                    arrivalManager: widget.arrivalManager),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      entry?.remove();
+                    },
+                  ),
+                )
+              ],
+            ))));
+
+    overlay.insert(entry!);
+  }
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
@@ -161,9 +159,9 @@ class _Info_displayState extends State<Info_display> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: AppColors.lightBlueColor.withOpacity(0.7),
+          color: AppColors.lightBlueColor,
         ),
-        margin: const EdgeInsets.fromLTRB(10, 350, 10, 0),
+        margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +173,7 @@ class _Info_displayState extends State<Info_display> {
                 height: 65,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: AppColors.darkBlueColor.withOpacity(0.5),
+                  color: AppColors.darkBlueColor,
                 ),
                 child: Row(
                   children: [
@@ -293,22 +291,14 @@ class _Info_displayState extends State<Info_display> {
               title: new Text("Bus Arriving!"),
               content: new Text("Select PROCEED if you are boarding the bus"),
               actions: <Widget>[
-                new TextButton(
-                  child: new Text("PROCEED"),
+                TextButton(
+                  child: Text("PROCEED"),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => busArrivedScreen(
-                                  busNo: "",
-                                  alighting: "",
-                                  boarding: "boarding",
-                                  arrivalManager: widget.arrivalManager,
-                                )));
+                    showOverlay();
                   },
                 ),
-                new TextButton(
+                TextButton(
                   child: new Text("CANCEL"),
                   onPressed: () {
                     Navigator.of(context).pop();

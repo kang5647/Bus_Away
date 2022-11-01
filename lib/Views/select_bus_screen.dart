@@ -20,6 +20,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
   Future<List> getBusStopList(String query) async {
     List busStops = [];
     List busStopsCode = [];
+
     final result = await FirebaseFirestore.instance
         .collection('BusRoutes')
         .where('BusServiceNo', isEqualTo: query)
@@ -62,13 +63,13 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                             color: Colors.white,
                             fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        "Bedok Int - Clementi Int", // change to parameters ltr
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.bold),
-                      ),
+                      // Text(
+                      //   ' ${busStops[0]['BusStopName']} - ${busStops[busStops.length - 1]['BusStopName']}', // change to parameters ltr
+                      //   style: TextStyle(
+                      //       fontSize: 20,
+                      //       color: Colors.black54,
+                      //       fontWeight: FontWeight.bold),
+                      // ),
                     ]),
               ),
               leading: Padding(
@@ -256,12 +257,45 @@ class _SelectionListState extends State<SelectionList> {
                             firstSelectedValue,
                             lastSelectedValue,
                             widget.busServiceNo),
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Confirmed_info(
-                                    arrivalManager: arrivalManager,
-                                    busServiceNo: widget.busServiceNo)))
+                        if (arrivalManager.curIndex >= arrivalManager.destIndex)
+                          {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: new Text("Error"),
+                                  content: new Text(
+                                      "Please enter an appropriate boarding point"),
+                                  actions: <Widget>[
+                                    new TextButton(
+                                      child: new Text("PROCEED"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    Select_Bus_UI(
+                                                        query: widget
+                                                            .busServiceNo)));
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            )
+                          }
+                        else
+                          {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => BusMap(
+                                        serviceNo: widget.busServiceNo,
+                                        busStops: widget.busStopList,
+                                        boardingStop: firstSelectedValue,
+                                        alightingStop: lastSelectedValue)))
+                          }
                       },
                   child: Text(
                     'Confirm',
