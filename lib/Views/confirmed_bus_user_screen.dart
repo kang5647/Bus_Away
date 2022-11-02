@@ -34,25 +34,75 @@ class _Confirmed_infoState extends State<Confirmed_info> {
   late Future<List<BusEta>> futureBusService;
   late BusETAJSONHelper jsonHelper;
   late Timer mytimer;
-  //String path = 'BusArrivalv2?BusStopCode=83139';
+
+  OverlayEntry? entry;
+  OverlayEntry? entry2;
+  GlobalKey globalKey = GlobalKey();
+
+  void showOverlay() {
+    mytimer.cancel();
+    final overlay = Overlay.of(context)!;
+    entry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.lightBlueColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
+          ),
+          busArrivedScreen(
+              busNo: widget.arrivalManager.busServiceNo,
+              alighting: widget.arrivalManager.alighting,
+              boarding: widget.arrivalManager.boarding,
+              arrivalManager: widget.arrivalManager),
+        ],
+      ),
+    );
+
+    entry2 = OverlayEntry(
+        builder: (context) => Positioned(
+            left: MediaQuery.of(context).size.width * 0.05,
+            top: MediaQuery.of(context).size.height * 0.51,
+            child: FloatingActionButton(
+              onPressed: () {
+                entry!.remove();
+                entry2!.remove();
+              },
+              child: const Icon(Icons.arrow_back),
+            )));
+    overlay.insert(entry!);
+    overlay.insert(entry2!);
+  }
+
+  void startTimer() {
+    mytimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+      } else {
+        final response = await jsonHelper.fetchServices(
+            widget.arrivalManager.boarding, widget.busServiceNo);
+        setState(() {
+          response;
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     jsonHelper = BusETAJSONHelper();
     super.initState();
+    startTimer();
+  }
 
-    mytimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
-      final response = await jsonHelper.fetchServices(
-          widget.arrivalManager.boarding, widget.busServiceNo);
-      setState(() {
-        response;
-      });
-    });
-
-    @override
-    void dispose() {
-      mytimer.cancel();
-      //super.dispose();
-    }
+  @override
+  void dispose() {
+    mytimer.cancel();
+    entry?.remove();
+    entry2?.remove();
+    super.dispose();
   }
 
   @override
@@ -69,8 +119,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
           );
         } else if (snapshot.hasData) {
           return Info_display(
-            busServiceList: snapshot.data!,
-            arrivalManager: widget.arrivalManager,
+            snapshot.data!,
+            widget.arrivalManager,
           );
         } else {
           return const Center(
@@ -80,51 +130,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
       },
     );
   }
-}
 
-class Info_display extends StatefulWidget {
-  final List<BusEta> busServiceList;
-  final ArrivalManager arrivalManager;
-  const Info_display(
-      {super.key, required this.busServiceList, required this.arrivalManager});
-
-  @override
-  State<Info_display> createState() => _Info_displayState();
-}
-
-class _Info_displayState extends State<Info_display> {
-  OverlayEntry? entry;
-
-  void showOverlay() {
-    final overlay = Overlay.of(context)!;
-
-    entry = OverlayEntry(
-        builder: (context) => Positioned(
-                child: Scaffold(
-                    body: Stack(
-              children: [
-                busArrivedScreen(
-                    busNo: widget.arrivalManager.busServiceNo,
-                    alighting: widget.arrivalManager.alighting,
-                    boarding: widget.arrivalManager.boarding,
-                    arrivalManager: widget.arrivalManager),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      entry?.remove();
-                    },
-                  ),
-                )
-              ],
-            ))));
-
-    overlay.insert(entry!);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget Info_display(List busServiceList, ArrivalManager arrivalManager) {
     final now = DateTime.now();
     print(now);
     DateTime estArrival1;
@@ -132,9 +139,9 @@ class _Info_displayState extends State<Info_display> {
 
     try {
       estArrival1 = DateTime.parse(
-          widget.busServiceList[0].services[0].nextBus.estimatedArrival);
+          busServiceList[0].services[0].nextBus.estimatedArrival);
       estArrival2 = DateTime.parse(
-          widget.busServiceList[0].services[0].nextBus2.estimatedArrival);
+          busServiceList[0].services[0].nextBus2.estimatedArrival);
     } catch (e) {
       return AlertDialog(
         title: const Text('Alert'),
@@ -180,7 +187,7 @@ class _Info_displayState extends State<Info_display> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
                       child: Text(
-                        widget.busServiceList[0].services[0].serviceNo,
+                        busServiceList[0].services[0].serviceNo,
                         style: TextStyle(
                             fontSize: 45,
                             color: Colors.white,
@@ -190,7 +197,7 @@ class _Info_displayState extends State<Info_display> {
                     Padding(
                       padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
                       child: busTypeIcon(
-                          widget.busServiceList[0].services[0].nextBus.type),
+                          busServiceList[0].services[0].nextBus.type),
                     ),
                     Padding(
                       padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
@@ -231,11 +238,11 @@ class _Info_displayState extends State<Info_display> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            wheelchair_indicator(widget
-                                .busServiceList[0].services[0].nextBus.feature),
+                            wheelchair_indicator(
+                                busServiceList[0].services[0].nextBus.feature),
                             arrIndicator(estArrival1.difference(now).inMinutes),
-                            busLoadLevel(widget
-                                .busServiceList[0].services[0].nextBus.load),
+                            busLoadLevel(
+                                busServiceList[0].services[0].nextBus.load),
                           ],
                         )),
                   ),
@@ -255,15 +262,17 @@ class _Info_displayState extends State<Info_display> {
                           backgroundColor: AppColors.darkBlueColor,
                           //fixedSize : Size(),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          showOverlay();
+                        },
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            wheelchair_indicator(widget.busServiceList[0]
-                                .services[0].nextBus2.feature),
+                            wheelchair_indicator(
+                                busServiceList[0].services[0].nextBus2.feature),
                             arrIndicator(estArrival2.difference(now).inMinutes),
-                            busLoadLevel(widget
-                                .busServiceList[0].services[0].nextBus2.load),
+                            busLoadLevel(
+                                busServiceList[0].services[0].nextBus2.load),
                           ],
                         )),
                   ),

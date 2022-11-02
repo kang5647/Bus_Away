@@ -146,6 +146,19 @@ class BusMapState extends State<BusMap> {
             style: TextStyle(
                 color: Colors.white, fontSize: 25, fontWeight: FontWeight.w800),
           ),
+          leading: Padding(
+            padding: EdgeInsets.only(right: 0),
+            child: Builder(
+              builder: (BuildContext context) {
+                return IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      dispose();
+                      Navigator.pop(context);
+                    });
+              },
+            ),
+          ),
         ),
         body: FutureBuilder(
             future: setMarkers(),
@@ -168,7 +181,7 @@ class BusMapState extends State<BusMap> {
                         initialCameraPosition: CameraPosition(
                             target: LatLng(
                                 widget.busStops[boardingIndex]['Latitude'],
-                                widget.busStops[alightingIndex]['Longitude']),
+                                widget.busStops[boardingIndex]['Longitude']),
                             zoom: 13.0),
                         myLocationButtonEnabled: true,
                         zoomControlsEnabled: false,

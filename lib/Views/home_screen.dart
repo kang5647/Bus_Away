@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, snapshot) {
             // If connection is successful, enter the login screen
             if (snapshot.connectionState == ConnectionState.done) {
-              return LoginScreen();
+              return EnterScreen();
             }
 
             // If connection is unsuccessful, load the progress indicator

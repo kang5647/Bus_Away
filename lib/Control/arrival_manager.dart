@@ -24,7 +24,7 @@ class ArrivalManager {
   late String busServiceNo;
   late int noOfStopsAway;
   late List busStopList;
-
+  late int boardingIndex;
   ArrivalManager(List busStopList, String boardingPoint, String alightingPoint,
       String busServiceNo) {
     this.jsonHelper = BusETAJSONHelper();
@@ -32,6 +32,7 @@ class ArrivalManager {
     this.busServiceNo = busServiceNo;
     this.curIndex = findStartIndex(boardingPoint);
     this.destIndex = findDestIndex(alightingPoint);
+    this.boardingIndex = curIndex;
     this.noOfStopsAway = destIndex - curIndex;
     this.boarding = busStopList[curIndex]['BusStopCode'];
     this.alighting = busStopList[curIndex]['BusStopCode'];
@@ -80,23 +81,13 @@ class ArrivalManager {
   }
 
   // if arrival then update the bus stop code
-  Future<bool> updateCurStop() async {
-    DateTime est;
-    String nextStop = busStopList[curIndex + 1]['BusStopCode'];
-    est = await updateArrival(nextStop);
-    int i = 0;
-    while (!checkArrival(est)) {
-      // print('Update ${i}');
-      sleep(Duration(seconds: 20));
-      i++;
-      est = await updateArrival(nextStop);
-      print('check arrival ${i}');
+  void updateCurStop(DateTime est) async {
+    if (checkArrival(est)) {
+      String nextStop = busStopList[curIndex + 1]['BusStopCode'];
+
+      this.curIndex++;
+      this.noOfStopsAway--;
     }
-    this.curIndex++;
-    this.noOfStopsAway--;
-    //print('updated curStop = ${bus.busStopName[curIndex]}\n');
-    return true;
-    //print('curStop = ${curStop}');
   }
 
   void arrivalAssistant() async {
@@ -110,7 +101,6 @@ class ArrivalManager {
       nextStop = busStopList[curIndex + 1]['BusStopName'];
       print(
           'curStop = ${curStop}, nextStop = ${nextStop}, no. of stops away = ${this.noOfStopsAway}');
-      await updateCurStop();
       //cur++;
       //next++;
       print(
@@ -126,5 +116,10 @@ class ArrivalManager {
   String getBusStopName(int index) {
     var busStop = busStopList[index];
     return busStop['BusStopName'];
+  }
+
+  String getBusStopCode(int index) {
+    var busStop = busStopList[index];
+    return busStop['BusStopCode'];
   }
 }

@@ -201,18 +201,38 @@ class _EnterScreenState extends State<EnterScreen> {
 
       // Greeting text
       FutureBuilder(
-        future: getData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return buildTextField(data!.temp, data!.mainDesc);
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
+          future: getData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return buildTextField(data!.temp, data!.mainDesc);
+            }
+            return Positioned(
+              top: 30,
+              left: 20,
+              right: 20,
+              child: Container(
+                width: Get.width,
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          spreadRadius: 5,
+                          blurRadius: 5)
+                    ]),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0),
+                      child: CircularProgressIndicator(),
+                    )
+                  ],
+                ),
+              ),
             );
-          }
-          return buildTextField(20.0, "Clear");
-        },
-      ),
+          }),
 
       // Bus routes
       buildRouteSelection(),
