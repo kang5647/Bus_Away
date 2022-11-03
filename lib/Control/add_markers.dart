@@ -46,36 +46,42 @@ class MarkerAdder {
       MarkerId("naturalWNP"): Marker(
           markerId: MarkerId("naturalWNP"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "Windsor Natural Park"),
           position: naturalWNP),
     };
     var naturalMarker2 = {
       MarkerId("naturalBBC"): Marker(
           markerId: MarkerId("naturalBBC"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "Bukit Brown Cemetery"),
           position: naturalBBC),
     };
     var naturalMarker3 = {
       MarkerId("naturalMRC"): Marker(
           markerId: MarkerId("naturalMRC"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "MacRitchie Reservoir"),
           position: naturalMRC),
     };
     var naturalMarker4 = {
       MarkerId("naturalLBS"): Marker(
           markerId: MarkerId("naturalLBS"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "LBS Memorial"),
           position: naturalLBS),
     };
     var naturalMarker5 = {
       MarkerId("naturalKKG"): Marker(
           markerId: MarkerId("naturalKKG"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "Kim Keat Garden"),
           position: naturalKKG),
     };
     var naturalMarker6 = {
       MarkerId("naturalKHP"): Marker(
           markerId: MarkerId("naturalKHP"),
           icon: natureIcon,
+          infoWindow: InfoWindow(title: "Kheam Hock Park"),
           position: naturalKHP),
     };
 
@@ -89,36 +95,68 @@ class MarkerAdder {
     //City
     var cityMarker1 = {
       MarkerId("cbdION"): Marker(
-          markerId: MarkerId("cbdION"), icon: cityIcon, position: cbdION),
+          markerId: MarkerId("cbdION"),
+          infoWindow: InfoWindow(title: "ION Orchard"),
+          icon: cityIcon,
+          position: cbdION),
     };
     var cityMarker2 = {
-      MarkerId("cbdOT"):
-          Marker(markerId: MarkerId("cbdOT"), icon: cityIcon, position: cbdOT),
+      MarkerId("cbdOT"): Marker(
+          markerId: MarkerId("cbdOT"),
+          infoWindow: InfoWindow(title: "Orchard Towers"),
+          icon: cityIcon,
+          position: cbdOT),
     };
     var cityMarker3 = {
       MarkerId("cbd313"): Marker(
-          markerId: MarkerId("cbd313"), icon: cityIcon, position: cbd313),
+          markerId: MarkerId("cbd313"),
+          infoWindow: InfoWindow(title: "Somerset 313"),
+          icon: cityIcon,
+          position: cbd313),
     };
     var cityMarker4 = {
-      MarkerId("cbdDG"):
-          Marker(markerId: MarkerId("cbdDG"), icon: cityIcon, position: cbdDG),
+      MarkerId("cbdDG"): Marker(
+          markerId: MarkerId("cbdDG"),
+          infoWindow: InfoWindow(title: "Dhoby Ghaut"),
+          icon: cityIcon,
+          position: cbdDG),
     };
     var cityMarker5 = {
-      MarkerId("cbdCH"):
-          Marker(markerId: MarkerId("cbdCH"), icon: cityIcon, position: cbdCH),
+      MarkerId("cbdCH"): Marker(
+          markerId: MarkerId("cbdCH"),
+          infoWindow: InfoWindow(title: "City Hall"),
+          icon: cityIcon,
+          position: cbdCH),
     };
     var cityMarker6 = {
-      MarkerId("cbdBP"):
-          Marker(markerId: MarkerId("cbdBP"), icon: cityIcon, position: cbdBP),
+      MarkerId("cbdBP"): Marker(
+          markerId: MarkerId("cbdBP"),
+          infoWindow: InfoWindow(title: "Bugis+"),
+          icon: cityIcon,
+          position: cbdBP),
     };
     var cityMarker7 = {
       MarkerId("cbdST"): Marker(
-          markerId: MarkerId("cbdST"), icon: cityIcon, position: naturalWNP),
+          markerId: MarkerId("cbdST"),
+          infoWindow: InfoWindow(title: "Suntec City"),
+          icon: cityIcon,
+          position: naturalWNP),
     };
     var cityMarker8 = {
-      MarkerId("cbdLV"):
-          Marker(markerId: MarkerId("cbdLV"), icon: cityIcon, position: cbdLV),
+      MarkerId("cbdLV"): Marker(
+          markerId: MarkerId("cbdLV"),
+          infoWindow: InfoWindow(title: "Lavender/ ICA Building"),
+          icon: cityIcon,
+          position: cbdLV),
     };
+    var cityMarker9 = {
+      MarkerId("cbdBB"): Marker(
+          markerId: MarkerId("cbdBB"),
+          infoWindow: InfoWindow(title: "Bras Basah"),
+          icon: cityIcon,
+          position: cbdLV),
+    };
+
     markers.addAll(cityMarker1);
     markers.addAll(cityMarker2);
     markers.addAll(cityMarker3);
@@ -127,24 +165,28 @@ class MarkerAdder {
     markers.addAll(cityMarker6);
     markers.addAll(cityMarker7);
     markers.addAll(cityMarker8);
+    markers.addAll(cityMarker9);
 
     //Cultural
     var museumMarker1 = {
       MarkerId("museumFOM"): Marker(
           markerId: MarkerId("museumFOM"),
           icon: culturalIcon,
+          infoWindow: InfoWindow(title: "Friends of Museum"),
           position: museumFOM),
     };
 
     var museumMarker2 = {
       MarkerId("museumNM"): Marker(
           markerId: MarkerId("museumNM"),
+          infoWindow: InfoWindow(title: "National Museum"),
           icon: culturalIcon,
           position: museumNM),
     };
     var museumMarker3 = {
       MarkerId("museumNG"): Marker(
           markerId: MarkerId("museumNG"),
+          infoWindow: InfoWindow(title: "National Gallery"),
           icon: culturalIcon,
           position: museumNG),
     };
@@ -152,23 +194,26 @@ class MarkerAdder {
       MarkerId("museumSCDF"): Marker(
           markerId: MarkerId("museumSCDF"),
           icon: culturalIcon,
+          infoWindow: InfoWindow(title: "SCDF Museum"),
           position: museumSCDF),
     };
     var museumMarker5 = {
       MarkerId("museumAHG"): Marker(
           markerId: MarkerId("museumAHG"),
+          infoWindow: InfoWindow(title: "Armenian Heritage Gallery"),
           icon: culturalIcon,
           position: museumAHG),
     };
     var museumMarker6 = {
       MarkerId("museumTFA"): Marker(
           markerId: MarkerId("museumTFA"),
-          icon: culturalIcon,
+          infoWindow: InfoWindow(title: "Today FineArt Museum"),
           position: museumTFA),
     };
     var museumMarker7 = {
       MarkerId("museumBEA"): Marker(
           markerId: MarkerId("museumBEA"),
+          infoWindow: InfoWindow(title: "Black Earth Art Museum"),
           icon: culturalIcon,
           position: museumBEA),
     };

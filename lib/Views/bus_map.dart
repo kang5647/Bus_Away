@@ -105,6 +105,7 @@ class BusMapState extends State<BusMap> {
           busMarkerID: Marker(
             markerId: busMarkerID,
             icon: boardingIcon,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
             position: LatLng(busStop['Latitude'], busStop['Longitude']),
           )
         };
@@ -114,6 +115,7 @@ class BusMapState extends State<BusMap> {
           busMarkerID: Marker(
             icon: alightingIcon,
             markerId: busMarkerID,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
             position: LatLng(busStop['Latitude'], busStop['Longitude']),
           )
         };
@@ -123,6 +125,7 @@ class BusMapState extends State<BusMap> {
           busMarkerID: Marker(
             icon: busstopIcon,
             markerId: busMarkerID,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
             position: LatLng(busStop['Latitude'], busStop['Longitude']),
           )
         };
