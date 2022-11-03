@@ -20,11 +20,13 @@ import 'package:flutter/scheduler.dart';
 class Confirmed_info extends StatefulWidget {
   final ArrivalManager arrivalManager;
   final String busServiceNo;
-  const Confirmed_info({
-    super.key,
-    required this.busServiceNo,
-    required this.arrivalManager,
-  });
+  final Function(String) onBusStopChanged;
+
+  const Confirmed_info(
+      {super.key,
+      required this.busServiceNo,
+      required this.arrivalManager,
+      required this.onBusStopChanged});
 
   @override
   State<Confirmed_info> createState() => _Confirmed_infoState();
@@ -53,25 +55,31 @@ class _Confirmed_infoState extends State<Confirmed_info> {
             margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
           ),
           busArrivedScreen(
-              busNo: widget.arrivalManager.busServiceNo,
-              alighting: widget.arrivalManager.alighting,
-              boarding: widget.arrivalManager.boarding,
-              arrivalManager: widget.arrivalManager),
+            busNo: widget.arrivalManager.busServiceNo,
+            alighting: widget.arrivalManager.alighting,
+            boarding: widget.arrivalManager.boarding,
+            arrivalManager: widget.arrivalManager,
+            onBusStopChanged: (String busStopName) {
+              widget.onBusStopChanged(busStopName);
+            },
+          ),
         ],
       ),
     );
 
     entry2 = OverlayEntry(
-        builder: (context) => Positioned(
-            left: MediaQuery.of(context).size.width * 0.05,
-            top: MediaQuery.of(context).size.height * 0.51,
-            child: FloatingActionButton(
-              onPressed: () {
-                entry!.remove();
-                entry2!.remove();
-              },
-              child: const Icon(Icons.arrow_back),
-            )));
+        builder: (context) =>
+            // this is the floating button widget, the widget can be shifted around using "left" and "top"
+            Positioned(
+                left: MediaQuery.of(context).size.width * 0.05,
+                top: MediaQuery.of(context).size.height * 0.51,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    entry!.remove();
+                    entry2!.remove();
+                  },
+                  child: const Icon(Icons.arrow_back),
+                )));
     overlay.insert(entry!);
     overlay.insert(entry2!);
   }

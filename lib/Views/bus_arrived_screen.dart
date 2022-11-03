@@ -19,11 +19,13 @@ class busArrivedScreen extends StatefulWidget {
       required this.busNo,
       required this.alighting,
       required this.boarding,
-      required this.arrivalManager});
+      required this.arrivalManager,
+      required this.onBusStopChanged});
   final String busNo;
   final String boarding;
   final String alighting;
   final ArrivalManager arrivalManager;
+  final Function(String) onBusStopChanged;
 
   @override
   State<busArrivedScreen> createState() => _busArrivedScreenState();
@@ -72,9 +74,12 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
     final String curStop = widget.arrivalManager
         .busStopList[widget.arrivalManager.curIndex]['BusStopName'];
 
-    Future.delayed(const Duration(seconds: 5)).then((value) =>
-        setState(() => {_stopsAway = stopsAway, _curStop = curStop}));
-    print('No of Stops Away: ${stopsAway}\n');
+    if (_curStop != curStop) {
+      widget.onBusStopChanged(curStop);
+      Future.delayed(const Duration(seconds: 5)).then((value) =>
+          setState(() => {_stopsAway = stopsAway, _curStop = curStop}));
+      //print('No of Stops Away: ${stopsAway}\n');
+    }
   }
 
   @override
@@ -149,6 +154,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
         }));
   }
 
+  //to do: change the size of bus arrival container
   Widget BusArrivalContainer() {
     return Container(
       width: 400,

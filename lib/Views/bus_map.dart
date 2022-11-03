@@ -33,7 +33,7 @@ class BusMap extends StatefulWidget {
 
 class BusMapState extends State<BusMap> {
   final Completer<GoogleMapController> _controller = Completer();
-
+  late GoogleMapController googleMapController;
   LocationData? currentLocation;
 
   BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
@@ -132,8 +132,8 @@ class BusMapState extends State<BusMap> {
   }
 
   void onMapCreated(GoogleMapController controller) {
+    googleMapController = controller;
     _controller.complete(controller);
-    //getPolyPoints();
   }
 
   @override
@@ -194,6 +194,14 @@ class BusMapState extends State<BusMap> {
                         child: Confirmed_info(
                           arrivalManager: arrivalManager,
                           busServiceNo: widget.serviceNo,
+                          onBusStopChanged: (String busStopName) {
+                            MarkerId markerId = MarkerId(busStopName);
+                            var busStopMarker = markers[markerId];
+                            googleMapController.animateCamera(
+                                CameraUpdate.newCameraPosition(CameraPosition(
+                                    target: busStopMarker!.position,
+                                    zoom: 14)));
+                          },
                         ),
                       ),
                     ],
