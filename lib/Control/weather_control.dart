@@ -1,3 +1,5 @@
+/// Control class for fetching weather data from OpenWeather API
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -17,6 +19,7 @@ class Weather {
   }
 }
 
+/// Driver class for fetching weather data and convert it into an object list
 class WeatherApiClient {
   Future<Weather>? getCurrentWeather() async {
     var endpoint = Uri.parse(

@@ -1,13 +1,12 @@
+/// A bus stops selection page which allows the user to set the desired boarding/alighting stop after a bus route is selected
+/// Boarding and alighting at the same stop is not allowed, so does alighting before the stops of the boarding point
+
 import 'package:bus_app/Control/arrival_manager.dart';
 import 'package:bus_app/Views/bus_map.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'confirmed_bus_user_screen.dart';
 import 'enter_screen.dart';
 import 'package:bus_app/Utility/app_colors.dart';
-import 'package:bus_app/Control/bus_eta_model.dart';
 
 class Select_Bus_UI extends StatefulWidget {
   const Select_Bus_UI({super.key, required this.query});
@@ -17,10 +16,12 @@ class Select_Bus_UI extends StatefulWidget {
 }
 
 class _Select_Bus_UIState extends State<Select_Bus_UI> {
+  ///Retrieve the list of bus stops from the bus route
   Future<List> getBusStopList(String query) async {
+    /// List of bus stops objects, each contains the [BusStopName], [BusStopCode], [Latitude] and [Longitude]
     List busStops = [];
-    List busStopsCode = [];
 
+    ///Getting data from Firestore
     final result = await FirebaseFirestore.instance
         .collection('BusRoutes')
         .where('BusServiceNo', isEqualTo: query)
@@ -41,39 +42,30 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
             appBar: AppBar(
               backgroundColor: Colors.white.withOpacity(0.0),
               flexibleSpace: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   image: DecorationImage(
                       image: AssetImage('assets/backGround1.png'),
                       fit: BoxFit.cover),
                 ),
               ),
               title: Padding(
-                padding: EdgeInsets.only(right: 50),
+                padding: const EdgeInsets.only(right: 50),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      /*SizedBox(
-              width: 35,
-              child: Image(image: AssetImage('assets/city.png')),
-            ),*/
                       Text(
                         widget.query,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 20,
                             color: Colors.white,
                             fontWeight: FontWeight.bold),
                       ),
-                      // Text(
-                      //   ' ${busStops[0]['BusStopName']} - ${busStops[busStops.length - 1]['BusStopName']}', // change to parameters ltr
-                      //   style: TextStyle(
-                      //       fontSize: 20,
-                      //       color: Colors.black54,
-                      //       fontWeight: FontWeight.bold),
-                      // ),
                     ]),
               ),
+
+              /// A back button to navigate to the main page
               leading: Padding(
-                padding: EdgeInsets.only(right: 0),
+                padding: const EdgeInsets.only(right: 0),
                 child: Builder(
                   builder: (BuildContext context) {
                     return IconButton(
@@ -84,13 +76,15 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => EnterScreen()));
+                                builder: (context) => const EnterScreen()));
                       },
                     );
                   },
                 ),
               ),
             ),
+
+            /// Display the dropdownlist after bus stops list is set
             body: FutureBuilder(
               future: getBusStopList(widget.query),
               builder: (context, snapshot) {
@@ -99,7 +93,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                     return Center(
                         child: Text(
                       '${snapshot.error} occurred',
-                      style: TextStyle(fontSize: 18),
+                      style: const TextStyle(fontSize: 18),
                     ));
                   } else if (snapshot.hasData) {
                     List busStopList = snapshot.data!;
@@ -109,7 +103,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
                     );
                   }
                 }
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               },
@@ -117,6 +111,7 @@ class _Select_Bus_UIState extends State<Select_Bus_UI> {
   }
 }
 
+/// Builds the dropdownlist with the bus stops list
 class SelectionList extends StatefulWidget {
   const SelectionList(
       {super.key, required this.busStopList, required this.busServiceNo});
@@ -127,19 +122,26 @@ class SelectionList extends StatefulWidget {
 }
 
 class _SelectionListState extends State<SelectionList> {
+  /// The value of the first dropdownlist, which indicates the boarding stop
   late String firstSelectedValue;
+
+  /// The value of the second dropdownlist, which indicates the alighting stop
   late String lastSelectedValue;
+
+  /// A manager which helps with updating the current bus stop and stops away from the destination
+  /// This class sets the [arrivalManager] for later use
   late ArrivalManager arrivalManager;
 
   late List<DropdownMenuItem<String>> dropdownItems;
 
+  /// Builds the DropDownItems
   List<DropdownMenuItem<String>> getDropdownItems() {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var busStop in widget.busStopList) {
       menuItems.add(DropdownMenuItem(
         child: Text(
           busStop['BusStopName'],
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 10,
             color: AppColors.blackColor,
           ),
@@ -159,6 +161,8 @@ class _SelectionListState extends State<SelectionList> {
         widget.busStopList[widget.busStopList.length - 1]['BusStopName'];
   }
 
+  ///Set the boarding and alighting points upon button [Submit] is pressed, navigate to the next page with relevant values
+  ///Same busStops for boarding/alighting are not allowed, alighting before the boarding point is also prohibited
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -172,7 +176,7 @@ class _SelectionListState extends State<SelectionList> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(left: 5, top: 10),
               child: Text(
                 'Select your Boarding and Alighting point',
@@ -184,8 +188,8 @@ class _SelectionListState extends State<SelectionList> {
               ),
             ),
             Container(
-                margin: EdgeInsets.only(top: 20, left: 10, right: 10),
-                padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
+                margin: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                padding: const EdgeInsets.fromLTRB(15, 10, 10, 10),
                 width: 400,
                 //alignment: Alignment.topCenter,
                 decoration: BoxDecoration(
@@ -194,7 +198,7 @@ class _SelectionListState extends State<SelectionList> {
                 ),
                 child: Row(
                   children: [
-                    Text(
+                    const Text(
                       textAlign: TextAlign.left,
                       'Boarding Point:  ',
                       style: TextStyle(
@@ -216,8 +220,8 @@ class _SelectionListState extends State<SelectionList> {
                   ],
                 )),
             Container(
-                margin: EdgeInsets.only(top: 20, left: 10, right: 10),
-                padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
+                margin: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                padding: const EdgeInsets.fromLTRB(15, 10, 10, 10),
                 width: 400,
                 //alignment: Alignment.topCenter,
                 decoration: BoxDecoration(
@@ -226,7 +230,7 @@ class _SelectionListState extends State<SelectionList> {
                 ),
                 child: Row(
                   children: [
-                    Text(
+                    const Text(
                       textAlign: TextAlign.left,
                       'Alighting Point:  ',
                       style: TextStyle(
@@ -249,7 +253,7 @@ class _SelectionListState extends State<SelectionList> {
                 )),
             Container(
               alignment: Alignment.center,
-              padding: EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
               child: TextButton(
                   onPressed: () => {
                         arrivalManager = ArrivalManager(
@@ -263,12 +267,12 @@ class _SelectionListState extends State<SelectionList> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title: new Text("Error"),
-                                  content: new Text(
+                                  title: const Text("Error"),
+                                  content: const Text(
                                       "Please enter an appropriate boarding point"),
                                   actions: <Widget>[
-                                    new TextButton(
-                                      child: new Text("PROCEED"),
+                                    TextButton(
+                                      child: const Text("PROCEED"),
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                         Navigator.push(
@@ -297,7 +301,7 @@ class _SelectionListState extends State<SelectionList> {
                                         alightingStop: lastSelectedValue)))
                           }
                       },
-                  child: Text(
+                  child: const Text(
                     'Confirm',
                     style: TextStyle(fontSize: 18),
                   )),

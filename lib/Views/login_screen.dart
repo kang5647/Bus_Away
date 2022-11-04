@@ -1,14 +1,11 @@
-import 'dart:math';
+/// A Login Page with Firebase Authentication
 
-import 'package:bus_app/Views/bus_map.dart';
 import 'package:bus_app/Views/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:bus_app/Utility/app_constants.dart';
-import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Views/enter_screen.dart';
 import 'package:bus_app/Widgets/text_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,21 +20,21 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Login Function
+  /// Login Function
   static Future<User?> loginUsingUserPassword(
       {required String username,
       required String password,
       required BuildContext context}) async {
-    // Authenticating the current user
+    /// Authenticate the current user
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user;
     try {
-      // Signing in with the entered email and password
+      /// Sign in with the entered email and password
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
           email: username, password: password);
       user = userCredential.user;
     } on FirebaseAuthException catch (e) {
-      // If no email was entered
+      /// Return 'No User Found' if no email was entered
       if (e.code == "user-not-found") {
         print("No User Found!");
         Get.snackbar("Error", "No Account Found!",
@@ -51,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
             margin: EdgeInsets.all(15),
             colorText: Colors.white);
       } else {
-        // If password or email was invalid
+        /// Return 'Error' if password or email was invalid
         Get.snackbar("Error", "Either your email or passsword is incorrect!",
             icon: Icon(
               Icons.error,
@@ -69,10 +66,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Create the textfiled controller
+    /// Create the textfiled controller
     TextEditingController _emailController = TextEditingController();
     TextEditingController _passwordController = TextEditingController();
 
+    /// Container for user's login
     return Container(
       width: Get.width,
       height: Get.height,
@@ -80,34 +78,34 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // BusAway icons and title
+            /// BusAway icons and title
             blueIntroWidget(),
 
-            //Spaced seprator
+            ///Spaced seprator
             const SizedBox(
               height: 35,
             ),
 
-            // Login details
+            ///Show Login details
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Greeting messages
+                    ///Display greeting messages
                     textWidget(text: AppConstants.helloNiceToMeetYou),
                     textWidget(
                         text: AppConstants.getMovingWithBusAway,
                         fontSize: 22,
                         fontWeight: FontWeight.bold),
 
-                    // Spaced seprator
+                    /// Spaced seprator
                     const SizedBox(
                       height: 30,
                     ),
 
-                    // Container for the Email
+                    /// Container for the Email
                     Container(
                       width: double.infinity,
                       height: 55,
@@ -149,12 +147,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ]),
                     ),
 
-                    // Spaced seprator
+                    /// Spaced seprator
                     const SizedBox(
                       height: 15,
                     ),
 
-                    // Containter for the password
+                    /// Containter for the password
+                    /// User authentication is done using [loginUsingUserPassword] method
                     Container(
                       width: double.infinity,
                       height: 55,
@@ -173,7 +172,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         Expanded(
                             flex: 3,
                             child: TextField(
-                              // controller: _passwordController,
                               controller: _passwordController,
                               textAlign: TextAlign.left,
                               textAlignVertical: TextAlignVertical.center,
@@ -215,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 30,
                     ),
 
-                    // Text to display sign up as well as the function called when pressed
+                    /// Text to display sign up as well as the function called when pressed
                     InkWell(
                       onTap: () {
                         Get.to(() => SignUpScreen());

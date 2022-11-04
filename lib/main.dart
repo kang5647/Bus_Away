@@ -1,11 +1,7 @@
 import 'package:bus_app/Views/home_screen.dart';
-import 'package:bus_app/Views/login_screen.dart';
-import 'package:bus_app/Views/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'FirebaseSetup/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

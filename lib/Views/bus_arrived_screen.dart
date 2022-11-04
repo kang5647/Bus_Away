@@ -1,15 +1,10 @@
+/// Display the current bus stop along the bus route and the number of stops away from the alighting point
+/// Send notifications to the user when it is only one stop away and when the bus has arrived at the alighting point
 import 'dart:async';
-
-import 'package:bus_app/Constant/constants.dart';
 import 'package:bus_app/Control/arrival_manager.dart';
-import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 import 'package:bus_app/Views/enter_screen.dart';
-
 import 'package:get/get.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 
@@ -25,6 +20,8 @@ class busArrivedScreen extends StatefulWidget {
   final String boarding;
   final String alighting;
   final ArrivalManager arrivalManager;
+
+  ///A call back function to tell [BusMap] google camera to set to the current bus stop location
   final Function(String) onBusStopChanged;
 
   @override
@@ -32,12 +29,20 @@ class busArrivedScreen extends StatefulWidget {
 }
 
 class _busArrivedScreenState extends State<busArrivedScreen> {
+  /// Number of stops between the current bus stop and the alighting stop
   late int _stopsAway;
+
+  /// Current bus stop name
   late String _curStop;
+
+  /// Whether to send notification
   static bool notify = false;
+
+  /// Whether the end notification has been sent
   static bool endNotification = false;
   late Timer mytimer;
 
+  ///Set the timer with 30s duration to check if the bus has reached the next bus stop, then update [_curStop] and [_stopsAway] accordingly
   void startTimer() {
     mytimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
       if (!mounted) {
@@ -55,11 +60,10 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
     super.initState();
     //setArrivalManager();
     startTimer();
-    setState(() {
-      _stopsAway = widget.arrivalManager.noOfStopsAway;
-      _curStop = widget.arrivalManager
-          .busStopList[widget.arrivalManager.curIndex]['BusStopName'];
-    });
+
+    _stopsAway = widget.arrivalManager.noOfStopsAway;
+    _curStop = widget.arrivalManager.busStopList[widget.arrivalManager.curIndex]
+        ['BusStopName'];
   }
 
   @override
@@ -68,6 +72,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
     super.dispose();
   }
 
+  /// Update the text value of the [busArrivedScreen]
   void updateStopsAway(ArrivalManager arrivalManager) async {
     //await arrivalManager.updateCurStop();
     final int stopsAway = arrivalManager.getNoOfStopsAway();
@@ -82,6 +87,9 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
     }
   }
 
+  /// Show the updated [_curStop] and [_stopsAway] and trigger notification if
+  /// 1. The bus is one stop away from the alighting point
+  /// 2. The bus has arrived at the alighting point
   @override
   Widget build(BuildContext context) {
     String nextStop = widget.arrivalManager
@@ -101,6 +109,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
               print(
                   'curStop = ${_curStop}, nextStop = ${nextStop}, no. of stops away = ${widget.arrivalManager.getNoOfStopsAway()}');
 
+              /// If [_stopsAway] == 1 and user has not been notified before
               if (widget.arrivalManager.noOfStopsAway == 1 && notify == false) {
                 SchedulerBinding.instance.addPostFrameCallback((_) {
                   Get.snackbar(
@@ -116,6 +125,8 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                       colorText: AppColors.blackColor);
                   notify = true;
                 });
+
+                /// If [_stopsAway] == 0 and end notification has not been set
               } else if (_stopsAway == 0 && !endNotification) {
                 SchedulerBinding.instance.addPostFrameCallback((_) {
                   showDialog(
@@ -154,15 +165,16 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
         }));
   }
 
-  //to do: change the size of bus arrival container
+  /// Display [_curStop] and [_stopsAway] using text widget
   Widget BusArrivalContainer() {
     return Container(
       width: 400,
+      //height: 100,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: AppColors.lightBlueColor,
       ),
-      margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
+      margin: const EdgeInsets.fromLTRB(10, 500, 10, 0),
       padding: EdgeInsets.all(12),
       child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -171,7 +183,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 10),
               child: Text(
-                  '${widget.arrivalManager.getBusStopName(widget.arrivalManager.curIndex)} - ${widget.arrivalManager.getBusStopName(widget.arrivalManager.destIndex)}',
+                  '${widget.arrivalManager.getBusStopName(widget.arrivalManager.boardingIndex)} - ${widget.arrivalManager.getBusStopName(widget.arrivalManager.destIndex)}',
                   style: TextStyle(
                       color: AppColors.darkBlueColor,
                       fontSize: 20,

@@ -1,20 +1,16 @@
-import 'dart:async';
-import 'dart:ffi';
-import 'dart:ui';
+/// Display Estimated Time Arrival (ETA) of the selected bus service at the boarding point
+/// Also show the next oncoming bus service to the boarding point
+/// Other than ETA, user can view the occupancy and the type of the bus, and whether the bus is wheelchair-accessible
 
+import 'dart:async';
 import 'package:bus_app/Views/bus_arrived_screen.dart';
 import 'package:bus_app/Views/select_bus_screen.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_app/Views/enter_screen.dart';
 import 'package:bus_app/Control/bus_eta_model.dart';
 import 'package:bus_app/Control/bus_eta_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'bus_arrived_screen.dart';
 import 'package:bus_app/Control/arrival_manager.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 class Confirmed_info extends StatefulWidget {
@@ -33,27 +29,30 @@ class Confirmed_info extends StatefulWidget {
 }
 
 class _Confirmed_infoState extends State<Confirmed_info> {
+  /// A list to hold the bus ETA info
   late Future<List<BusEta>> futureBusService;
+
+  /// An API manager which converts the json data from API to an object list
   late BusETAJSONHelper jsonHelper;
   late Timer mytimer;
 
+  /// Overlay for bus_arrived_screen
   OverlayEntry? entry;
-  OverlayEntry? entry2;
-  GlobalKey globalKey = GlobalKey();
 
+  ///Show [busArrivedScreen] which displays the current bus stop and the number of stops away from the destination
   void showOverlay() {
     mytimer.cancel();
     final overlay = Overlay.of(context)!;
     entry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.lightBlueColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
-          ),
+          // Container(
+          //   decoration: BoxDecoration(
+          //     color: AppColors.lightBlueColor,
+          //     borderRadius: BorderRadius.circular(8),
+          //   ),
+          //   margin: const EdgeInsets.fromLTRB(10, 550, 10, 0),
+          // ),
           busArrivedScreen(
             busNo: widget.arrivalManager.busServiceNo,
             alighting: widget.arrivalManager.alighting,
@@ -67,23 +66,10 @@ class _Confirmed_infoState extends State<Confirmed_info> {
       ),
     );
 
-    entry2 = OverlayEntry(
-        builder: (context) =>
-            // this is the floating button widget, the widget can be shifted around using "left" and "top"
-            Positioned(
-                left: MediaQuery.of(context).size.width * 0.05,
-                top: MediaQuery.of(context).size.height * 0.51,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    entry!.remove();
-                    entry2!.remove();
-                  },
-                  child: const Icon(Icons.arrow_back),
-                )));
     overlay.insert(entry!);
-    overlay.insert(entry2!);
   }
 
+  /// Set timer with 30 seconds duration
   void startTimer() {
     mytimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
       if (!mounted) {
@@ -109,10 +95,10 @@ class _Confirmed_infoState extends State<Confirmed_info> {
   void dispose() {
     mytimer.cancel();
     entry?.remove();
-    entry2?.remove();
     super.dispose();
   }
 
+  /// Display the bus ETA info after data retrieval using LTA API is successful
   @override
   Widget build(BuildContext context) {
     futureBusService = jsonHelper.fetchServices(
@@ -139,6 +125,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
     );
   }
 
+  /// A widget class which builds the busETA container
+  /// If the bus service has ended operation, the widget will display "Not in operation" text and go back to bus selection page
   Widget Info_display(List busServiceList, ArrivalManager arrivalManager) {
     final now = DateTime.now();
     print(now);
@@ -176,7 +164,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
           borderRadius: BorderRadius.circular(8),
           color: AppColors.lightBlueColor,
         ),
-        margin: const EdgeInsets.fromLTRB(10, 400, 10, 0),
+        margin: const EdgeInsets.fromLTRB(10, 450, 10, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +236,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                           children: [
                             wheelchair_indicator(
                                 busServiceList[0].services[0].nextBus.feature),
-                            arrIndicator(estArrival1.difference(now).inMinutes),
+                            arrIndicator(
+                                estArrival1.difference(now).inMinutes, 1),
                             busLoadLevel(
                                 busServiceList[0].services[0].nextBus.load),
                           ],
@@ -271,6 +260,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                           //fixedSize : Size(),
                         ),
                         onPressed: () {
+                          //next bus clickable for debugging purposes
                           showOverlay();
                         },
                         child: Column(
@@ -278,7 +268,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                           children: [
                             wheelchair_indicator(
                                 busServiceList[0].services[0].nextBus2.feature),
-                            arrIndicator(estArrival2.difference(now).inMinutes),
+                            arrIndicator(
+                                estArrival2.difference(now).inMinutes, 2),
                             busLoadLevel(
                                 busServiceList[0].services[0].nextBus2.load),
                           ],
@@ -295,7 +286,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
 
   static int notification = 0;
 
-  Text arrIndicator(int time) {
+  /// if the bus has arrived at the [boardingStop], prompt the user to go to [busArrivedScreen]
+  Text arrIndicator(int time, int busOrder) {
     //print(time);
 
     if (time <= 0 && notification == 0) {
@@ -311,6 +303,8 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                 TextButton(
                   child: Text("PROCEED"),
                   onPressed: () {
+                    //Press process to show overlays
+                    //notification = 0;
                     Navigator.of(context).pop();
                     showOverlay();
                   },
@@ -319,7 +313,6 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                   child: new Text("CANCEL"),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    notification = 0;
                   },
                 ),
               ],
@@ -328,10 +321,15 @@ class _Confirmed_infoState extends State<Confirmed_info> {
         );
       });
 
-      // notification = 1;
+      // notification = 1
+    } else if (busOrder == 1 && time > 0) {
+      notification = 0;
+    }
+    if (time <= 0) {
       return const Text("Arr",
           style: TextStyle(color: AppColors.lightColor, fontSize: 20));
     } else {
+      //notification = 0;
       return Text(time.toString() + ' min',
           style: TextStyle(color: AppColors.lightColor, fontSize: 20));
     }

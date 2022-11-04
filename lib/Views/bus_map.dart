@@ -1,19 +1,12 @@
-import 'dart:async';
+/// Return Google map with boarding/alight busStop markers, together with the bus stops in between, in addition to the static markers
 
+import 'dart:async';
 import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/arrival_manager.dart';
 import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animarker/core/animarker_controller_description.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:bus_app/Constant/constants.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'package:flutter_animarker/flutter_map_marker_animation.dart';
-
-import 'package:flutter_animarker/widgets/animarker.dart';
 
 class BusMap extends StatefulWidget {
   const BusMap(
@@ -47,9 +40,6 @@ class BusMapState extends State<BusMap> {
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-  Set<Polyline> _polylines = Set();
-  List _busStopCoordinates = [];
-
   int boardingIndex = 0;
   int alightingIndex = 0;
   bool isSetupReady = false;
@@ -59,6 +49,7 @@ class BusMapState extends State<BusMap> {
     super.initState();
   }
 
+  /// Set the static markers and the bus stop markers
   Future<bool> setMarkers() async {
     boardingIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration.empty, "assets/mapmarker_icons/Pin_boarding.png");
@@ -85,6 +76,8 @@ class BusMapState extends State<BusMap> {
     return true;
   }
 
+  /// Set the bus stop based on its designation
+  /// For instance, bus Stop with [boardingIndex] is set with [boardingIcon]
   void getBusStops(List busStops) {
     for (int i = 0; i < busStops.length; i++) {
       var busStop = busStops[i];
@@ -134,11 +127,15 @@ class BusMapState extends State<BusMap> {
     }
   }
 
+  /// Set the GoogleMapController
   void onMapCreated(GoogleMapController controller) {
     googleMapController = controller;
     _controller.complete(controller);
   }
 
+  /// Display the map with all the markers after the markers are fully set
+  /// Also set the camera to the [boardingStop]
+  /// From [busArrivedScreen], upon arrival at the next bus stop, set the camera to it
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,7 +182,7 @@ class BusMapState extends State<BusMap> {
                             target: LatLng(
                                 widget.busStops[boardingIndex]['Latitude'],
                                 widget.busStops[boardingIndex]['Longitude']),
-                            zoom: 13.0),
+                            zoom: 15.0),
                         myLocationButtonEnabled: true,
                         zoomControlsEnabled: false,
                         // polylines: _polylines,

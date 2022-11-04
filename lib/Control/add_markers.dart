@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart';
+/// Driver code for setting static markers
+/// The markers can be clicked to display the legend
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MarkerAdder {

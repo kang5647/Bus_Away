@@ -1,24 +1,14 @@
+/// The main page after user's login is successful
+/// This page displays the map of Singapore, with iconic landmarks plotted and 4 different bus services for user to choose
 import 'dart:async';
-import 'dart:ui';
-
 import 'package:bus_app/Control/add_markers.dart';
 import 'package:bus_app/Control/weather_control.dart';
 import 'package:bus_app/Utility/app_colors.dart';
-import 'package:bus_app/Utility/app_constants.dart';
-import 'package:bus_app/Views/bus_map.dart';
 import 'package:bus_app/Views/home_screen.dart';
-import 'package:bus_app/Views/login_screen.dart';
 import 'package:bus_app/Views/select_bus_screen.dart';
 import 'package:bus_app/Widgets/blue_intro_widget.dart';
-import 'package:bus_app/Widgets/text_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_animarker/core/ripple_marker.dart';
-import 'package:flutter_animarker/flutter_map_marker_animation.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -26,6 +16,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 
+///Timer for setting the interval between each weather info retrieval
 Timer? _timer;
 
 class EnterScreen extends StatefulWidget {
@@ -36,18 +27,23 @@ class EnterScreen extends StatefulWidget {
 }
 
 class _EnterScreenState extends State<EnterScreen> {
-  // Initial camera position for Google Maps
-
-  String? _mapStyle;
+  /// Goole Map controller
   final Completer<GoogleMapController> _controller = Completer();
   late GoogleMapController googleMapController;
 
+  ///  A Weather API Manager
   WeatherApiClient client = WeatherApiClient();
+
+  /// A class model for storing weather data
   Weather? data;
 
+  /// A set of markers to display on Google map, this includes: static markers(iconic landmarks) and user's current location
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
+  /// A library function to add all the static markers
   MarkerAdder staticMarkers = MarkerAdder();
+
+  /// Defines bitmap images for different markers' icon
   BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor cityIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor natureIcon = BitmapDescriptor.defaultMarker;
@@ -55,11 +51,17 @@ class _EnterScreenState extends State<EnterScreen> {
   BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor mylocationIcon = BitmapDescriptor.defaultMarker;
+
+  /// Whether the markers'icon is set properly before display
   bool isSetupReady = false;
 
-  Location myLocation = new Location();
+  /// The current location of the user
+  Location myLocation = Location();
 
+  /// Marker ID for the marker of user's location
   late MarkerId locationMarkerID;
+
+  /// Setting the markers'icon using asset images
   void setCustomMarkerIcon() async {
     //used to set the icons for our markers in project (can custom markers)
     busstopIcon = await BitmapDescriptor.fromAssetImage(
@@ -77,17 +79,21 @@ class _EnterScreenState extends State<EnterScreen> {
     mylocationIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration.empty, "assets/mapmarker_icons/Badge.png");
 
+    /// Set the static markers'icon
     staticMarkers.setStaticMarkers(
         busstopIcon, cityIcon, natureIcon, culturalIcon);
 
+    /// Add all the static markers to local markers set
     markers.addAll(staticMarkers.getMarkers);
 
+    /// Setstate after markers'icon are all set
     setState(() {
       isSetupReady = true;
     });
   }
 
   // Function to determine the live location of the user
+  /*
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -116,8 +122,9 @@ class _EnterScreenState extends State<EnterScreen> {
     Position position = await Geolocator.getCurrentPosition();
 
     return position;
-  }
+  } */
 
+  /// Get the weather data using [WeatherAPIClient]
   Future<void> getData() async {
     data = await client.getCurrentWeather();
     print(data!.temp);
@@ -129,16 +136,19 @@ class _EnterScreenState extends State<EnterScreen> {
     setCustomMarkerIcon();
     super.initState();
     client.getCurrentWeather();
+
+    /// Declare a new timer with 10 minutes duration
     _timer =
-        new Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
-    rootBundle.loadString('assets/map_style.txt').then((string) {
-      _mapStyle = string;
-    });
+        Timer.periodic(const Duration(minutes: 10), (Timer t) => getData());
+    rootBundle.loadString('assets/map_style.txt').then((string) {});
   }
 
   @override
   Widget build(BuildContext context) {
+    /// Initialize firestore connection
     WidgetsFlutterBinding.ensureInitialized;
+
+    /// Display map after user's location is retrieved and all markers are set
     return Scaffold(
         body: Stack(children: [
       Positioned(
@@ -194,7 +204,6 @@ class _EnterScreenState extends State<EnterScreen> {
               );
             }),
       ),
-      // Creating the first instance of the Google Map layer
 
       // Background image
       blueHeader(),
@@ -234,10 +243,10 @@ class _EnterScreenState extends State<EnterScreen> {
             );
           }),
 
-      // Bus routes
+      /// Build the Bus Route for user's selection
       buildRouteSelection(),
 
-      // GPS current location widget on bottom right
+      /// Set the current location's marker and adjust camera position to user's current location after clicked
       Align(
         alignment: Alignment.bottomRight,
         child: Padding(
@@ -272,7 +281,7 @@ class _EnterScreenState extends State<EnterScreen> {
         ),
       ),
 
-      // Bottom swipe up sheet
+      /// Build Bottom swipe up sheet for logout
       buildBottomSheet(),
     ]));
   }
@@ -284,7 +293,7 @@ class _EnterScreenState extends State<EnterScreen> {
   }
 }
 
-// The code for the route selection bar as well as the circles and icons
+/// Build bus route box for selection
 Widget buildRouteSelection() {
   return Positioned(
     top: 100,
@@ -342,7 +351,7 @@ Widget buildRouteSelection() {
   );
 }
 
-// Code for the bottom sheet, where the log out function lies as well
+// Build the bottom sheet for logout function
 Widget buildBottomSheet() {
   return Align(
     alignment: Alignment.bottomCenter,
@@ -378,6 +387,7 @@ Widget buildBottomSheet() {
   );
 }
 
+/// Set bus route selections' icon
 class busRouteIcon extends StatefulWidget {
   const busRouteIcon({
     super.key,
@@ -457,78 +467,9 @@ class _busRouteIconState extends State<busRouteIcon> {
       ),
     );
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return SizedBox(
-  //     width: 82,
-  //     height: 70,
-  //     child: ElevatedButton(
-  //       onPressed: () {
-  //         if (widget.route == "City") {
-  //           Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                   builder: (context) => const Select_Bus_UI(
-  //                         query: "7",
-  //                       )));
-  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
-  //           print("clicked");
-  //         } else if (widget.route == "Heartland") {
-  //           Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                   builder: (context) => const Select_Bus_UI(query: "168")));
-  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
-  //           print("clicked");
-  //         } else if (widget.route == "Nature") {
-  //           Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                   builder: (context) => const Select_Bus_UI(query: "52")));
-  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
-  //           print("clicked");
-  //         } else if (widget.route == "Cultural") {
-  //           Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                   builder: (context) => const Select_Bus_UI(query: "147")));
-  //           //bus_eta_ui(busStopCode: "83139", busServiceNo: "15");
-
-  //           print("clicked");
-  //         }
-  //       },
-  //       style: ElevatedButton.styleFrom(
-  //           backgroundColor: AppColors.lightBlueColor.withOpacity(1.0)),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.stretch,
-  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //         children: [
-  //           CircleAvatar(
-  //             backgroundColor: AppColors.whiteColor.withOpacity(0.7),
-  //             radius: 23,
-  //             backgroundImage: ExactAssetImage(widget.picPath),
-  //           ),
-  //           const SizedBox(
-  //             height: 5.0,
-  //           ),
-  //           Align(
-  //             alignment: Alignment.center,
-  //             child: Text(
-  //               widget.route,
-  //               style: GoogleFonts.poppins(
-  //                   fontSize: 9,
-  //                   fontWeight: FontWeight.bold,
-  //                   color: Colors.black),
-  //             ),
-  //           )
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }
 
-// Code to build the greeting text at the top of the page
+/// Build the greeting text at the top of the page
 Widget buildTextField(double? temp, String? mainDesc) {
   return Positioned(
     top: 30,
@@ -577,7 +518,7 @@ Widget buildTextField(double? temp, String? mainDesc) {
   );
 }
 
-// Code to show the inside of the bottomSheet when it is pressed
+/// Show bottomsheet content when it is pressed
 Widget bottomSheetControl() {
   return Container(
     width: Get.width,
@@ -652,6 +593,7 @@ Widget bottomSheetControl() {
   );
 }
 
+/// Set weather icon for different temperatures
 Widget buildWeatherIcon(double? temp, String? mainDesc) {
   IconData myIcon;
   Color myColor;
