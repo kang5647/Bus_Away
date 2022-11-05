@@ -1,9 +1,7 @@
-import 'dart:convert';
-
-// BusEta busEtaFromJson(String str) => BusEta.fromJson(json.decode(str));
-
-// String busEtaToJson(BusEta data) => json.encode(data.toJson());
-
+/// Bus Service model class which stores the attributes of a bus service
+/// Contains 2 methods: [toJson] and [fromJson]
+/// [toJson]: convert an object list to json object
+/// [fromJson]: convert json object to an object list
 class BusEta {
   BusEta({
     //required this.odataMetadata,

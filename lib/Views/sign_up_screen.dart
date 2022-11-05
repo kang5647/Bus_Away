@@ -1,3 +1,6 @@
+/// User sign-up page
+/// User's details are stored in Firebase Authentication
+
 import 'package:bus_app/Utility/app_colors.dart';
 import 'package:bus_app/Views/enter_screen.dart';
 import 'package:bus_app/Widgets/blue_intro_widget.dart';
@@ -21,12 +24,13 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  ///Text controller which retrieves the text input
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   Future signUp() async {
     try {
-      // Try and create the account in firebase
+      /// Try and create the account in firebase
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim());
@@ -34,7 +38,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       Get.to(() => EnterScreen());
     } on FirebaseAuthException catch (e) {
       print(e.code);
-      // Case if the email is invalid
+
+      /// Case if the email is invalid
       if (e.code == "invalid-email") {
         Get.snackbar("Invalid Email", "Enter a valid email",
             icon: Icon(
@@ -47,7 +52,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             margin: EdgeInsets.all(15),
             colorText: Colors.white);
       }
-      // Case if the passsword is too short
+
+      /// Case if the passsword is too short
       else if (e.code == "weak-password") {
         Get.snackbar("Weak Password", "Enter a longer password",
             icon: Icon(

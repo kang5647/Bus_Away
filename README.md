@@ -1,16 +1,7 @@
 # bus_app
 
-A new Flutter project.
+The SWEet and Tasty Team has developed a mobile-app for a new bus shuttle service that aims to provide users quick and convenient transport around Singapore without the hassle and long travel time prevalent in public transport. This project aims to fill a gap in the market where riders are looking for faster and more accurate bus service
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Target Audience
+All current public transport riders, especially those who are looking for better
+while still affordable travel alternatives.

@@ -1,3 +1,5 @@
+/// Widget for building features of the login page
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -82,5 +84,36 @@ Widget blueHeader() {
     decoration: const BoxDecoration(
         image: DecorationImage(
             image: AssetImage("assets/backGround.png"), fit: BoxFit.cover)),
+  );
+}
+
+Widget blueSelectScreenWidget() {
+  return Container(
+    width: Get.width,
+    decoration: const BoxDecoration(
+        // The backgournd image
+        image: DecorationImage(
+            image: AssetImage('assets/backGround.png'), fit: BoxFit.fill)),
+    height: Get.height * 0.3,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Text for the "Sign Up" title
+
+        SvgPicture.asset(
+          'assets/LocationIcon.svg',
+          height: 150,
+          width: 150,
+          color: Colors.white,
+        ),
+
+        Text(
+          "Bus Stop Selection",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+              fontSize: 35, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+      ],
+    ),
   );
 }

@@ -1,13 +1,26 @@
-import 'dart:async';
+/// Return Google map with boarding/alight busStop markers, together with the bus stops in between, in addition to the static markers
 
+import 'dart:async';
+import 'package:bus_app/Control/add_markers.dart';
+import 'package:bus_app/Control/arrival_manager.dart';
+import 'package:bus_app/Utility/app_colors.dart';
+import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:bus_app/Constant/constants.dart';
 
 class BusMap extends StatefulWidget {
-  const BusMap({Key? key}) : super(key: key);
+  const BusMap(
+      {super.key,
+      required this.serviceNo,
+      required this.busStops,
+      required this.boardingStop,
+      required this.alightingStop});
+  final String serviceNo;
+  final List busStops;
+  final String boardingStop;
+  final String alightingStop;
 
   @override
   State<BusMap> createState() => BusMapState();
@@ -15,207 +28,207 @@ class BusMap extends StatefulWidget {
 
 class BusMapState extends State<BusMap> {
   final Completer<GoogleMapController> _controller = Completer();
-
-  static const LatLng sourceLocation = LatLng(1.36081, 103.83212); //Ai Tong Sch
-  static const LatLng bus1stop01 = LatLng(1.34939, 103.83729);
-  static const LatLng destination =
-      LatLng(1.33082, 103.77801); //Opp Ngee Ann Poly
-
-  static const LatLng naturalWNP =
-      LatLng(1.359581, 103.826591); //Windsor Natural Park
-  static const LatLng naturalBBC =
-      LatLng(1.340248, 103.830781); //Bukit Brown Cemetery
-  static const LatLng naturalMRC =
-      LatLng(1.342354, 103.835833); //MacRitchie Reservoir
-  static const LatLng naturalLBS = LatLng(1.341857, 103.830732); //LBS Memorial
-  static const LatLng naturalKKG =
-      LatLng(1.336683, 103.818498); //Kim Keat Garden
-  static const LatLng naturalKHP =
-      LatLng(1.330803, 103.818653); //Kheam Hock Park
-
-  List<LatLng> polylineCoordinate = [];
+  late GoogleMapController googleMapController;
   LocationData? currentLocation;
 
-  BitmapDescriptor sourceIcon = BitmapDescriptor.defaultMarker;
-  BitmapDescriptor destinationIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor boardingIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor alightingIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor currentLocationIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busstopIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor cityIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor natureIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor culturalIcon = BitmapDescriptor.defaultMarker;
+  MarkerAdder staticMarkers = MarkerAdder();
 
-  void getCurrentLocation() async {
-    Location location = Location();
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-    await location.getLocation().then(
-      (location) {
-        currentLocation = location;
-      },
-    );
-    /*
-    GoogleMapController googleMapController = await _controller.future;
+  int boardingIndex = 0;
+  int alightingIndex = 0;
+  bool isSetupReady = false;
 
-    location.onLocationChanged.listen(
-      (newLoc) {
-        currentLocation = newLoc;
-        
-        googleMapController.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-                zoom: 15.5,
-                target: LatLng(
-                  newLoc.latitude!,
-                  newLoc.longitude!,
-                )),
-          ),
-        );
-        
-        setState(() {});
-      },
-    ); */
-  }
-
-  void getPolyPoints() async {
-    PolylinePoints polylinePoints = PolylinePoints();
-
-    PolylineResult result1 = await polylinePoints.getRouteBetweenCoordinates(
-      google_api_key,
-      PointLatLng(sourceLocation.latitude, sourceLocation.longitude),
-      PointLatLng(bus1stop01.latitude, bus1stop01.longitude),
-    );
-
-    PolylineResult result2 = await polylinePoints.getRouteBetweenCoordinates(
-      google_api_key,
-      PointLatLng(bus1stop01.latitude, bus1stop01.longitude),
-      PointLatLng(destination.latitude, destination.longitude),
-    );
-
-    if (result1.points.isNotEmpty || result2.points.isNotEmpty) {
-      result1.points.forEach(
-        (PointLatLng point) => polylineCoordinate.add(
-          LatLng(point.latitude, point.longitude),
-        ),
-      );
-      result2.points.forEach(
-        (PointLatLng point) => polylineCoordinate.add(
-          LatLng(point.latitude, point.longitude),
-        ),
-      );
-      setState(
-          () {}); //go polylines to change the color of the connecting lines
-    }
-  }
-
-  void setCustomMarkerIcon() {
-    //used to set the icons for our markers in project (can custom markers)
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Pin_source.png")
-        .then(
-      (icon) {
-        sourceIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(ImageConfiguration.empty,
-            "assets/mapmarker_icons/Pin_destination.png")
-        .then(
-      (icon) {
-        destinationIcon = icon;
-      },
-    );
-
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration.empty, "assets/mapmarker_icons/Badge.png")
-        .then(
-      (icon) {
-        currentLocationIcon = icon;
-      },
-    );
-  }
+  String? _mapStyle;
 
   @override
   void initState() {
-    getCurrentLocation();
-    setCustomMarkerIcon();
-    getPolyPoints();
     super.initState();
+    rootBundle.loadString('assets/map_style.txt').then((string) {
+      _mapStyle = string;
+    });
   }
 
+  /// Set the static markers and the bus stop markers
+  Future<bool> setMarkers() async {
+    boardingIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_boarding1.png");
+    alightingIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/dest_marker.png");
+    busstopIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_source1.png");
+
+    cityIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_city1.png");
+
+    natureIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_nature1.png");
+
+    culturalIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration.empty, "assets/mapmarker_icons/Pin_history1.png");
+
+    staticMarkers.setStaticMarkers(
+        busstopIcon, cityIcon, natureIcon, culturalIcon);
+
+    markers.addAll(staticMarkers.getMarkers);
+    getBusStops(widget.busStops);
+
+    return true;
+  }
+
+  /// Set the bus stop based on its designation
+  /// For instance, bus Stop with [boardingIndex] is set with [boardingIcon]
+  void getBusStops(List busStops) {
+    for (int i = 0; i < busStops.length; i++) {
+      var busStop = busStops[i];
+      if (busStop['BusStopName'] == widget.boardingStop) {
+        boardingIndex = i;
+      }
+      if (busStop['BusStopName'] == widget.alightingStop) {
+        alightingIndex = i;
+        break;
+      }
+    }
+    for (int i = boardingIndex; i < alightingIndex + 1; i++) {
+      var busStop = busStops[i];
+      var marker;
+      if (i == boardingIndex) {
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            markerId: busMarkerID,
+            icon: boardingIcon,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
+      } else if (i == alightingIndex) {
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            icon: alightingIcon,
+            markerId: busMarkerID,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
+      } else {
+        MarkerId busMarkerID = MarkerId(busStop['BusStopName']);
+        marker = {
+          busMarkerID: Marker(
+            icon: busstopIcon,
+            markerId: busMarkerID,
+            infoWindow: InfoWindow(title: busStop['BusStopName']),
+            position: LatLng(busStop['Latitude'], busStop['Longitude']),
+          )
+        };
+      }
+      markers.addAll(marker);
+    }
+  }
+
+  /// Set the GoogleMapController
+  void onMapCreated(GoogleMapController controller) {
+    googleMapController = controller;
+    _controller.complete(controller);
+    googleMapController.setMapStyle(_mapStyle);
+  }
+
+  /// Display the map with all the markers after the markers are fully set
+  /// Also set the camera to the [boardingStop]
+  /// From [busArrivedScreen], upon arrival at the next bus stop, set the camera to it
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: const Text(
-          "Bus Away App",
-          style: TextStyle(
-              color: Colors.white, fontSize: 25, fontWeight: FontWeight.w800),
-        ),
-      ),
-      body: currentLocation == null
-          ? const Center(child: Text("Loading..."))
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                      currentLocation!.latitude!, currentLocation!.longitude!),
-                  zoom: 15.5),
-              myLocationEnabled: true,
-              polylines: {
-                Polyline(
-                  polylineId: PolylineId("route"),
-                  points: polylineCoordinate,
-                  color: Colors.blue,
-                  width: 4,
-                ),
+      body: Stack(
+        children: [
+          // Future Builder
+          FutureBuilder(
+              future: setMarkers(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.data == null) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (snapshot.data == true) {
+                    ArrivalManager arrivalManager = ArrivalManager(
+                        widget.busStops,
+                        widget.boardingStop,
+                        widget.alightingStop,
+                        widget.serviceNo);
+                    return Stack(
+                      children: [
+                        GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                  widget.busStops[boardingIndex]['Latitude'],
+                                  widget.busStops[boardingIndex]['Longitude']),
+                              zoom: 15.0),
+                          myLocationButtonEnabled: true,
+                          zoomControlsEnabled: false,
+                          // polylines: _polylines,
+                          onMapCreated: onMapCreated,
+                          markers: markers.values.toSet(),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Confirmed_info(
+                            arrivalManager: arrivalManager,
+                            busServiceNo: widget.serviceNo,
+                            onBusStopChanged: (String busStopName) {
+                              MarkerId markerId = MarkerId(busStopName);
+                              var busStopMarker = markers[markerId];
+                              googleMapController.animateCamera(
+                                  CameraUpdate.newCameraPosition(CameraPosition(
+                                      target: busStopMarker!.position,
+                                      zoom: 14)));
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }),
+
+          // Back button
+          Positioned(
+            top: 30,
+            left: 20,
+            child: InkWell(
+              onTap: () {
+                dispose();
+                Navigator.pop(context);
               },
-              markers: {
-                Marker(
-                  markerId: const MarkerId("currentLocation"),
-                  icon:
-                      currentLocationIcon, //implementation of current location icon
-                  position: LatLng(
-                      currentLocation!.latitude!, currentLocation!.longitude!),
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black,
                 ),
-                Marker(
-                  markerId: MarkerId("source"),
-                  icon: sourceIcon,
-                  position: sourceLocation,
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 15,
+                  color: Colors.white,
                 ),
-                Marker(
-                  markerId: MarkerId("bus1stop01"),
-                  icon: sourceIcon,
-                  position: bus1stop01,
-                ),
-                Marker(
-                  markerId: MarkerId("destination"),
-                  icon: destinationIcon,
-                  position: destination,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalWNP"),
-                  position: naturalWNP,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalBBC"),
-                  position: naturalBBC,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalMRC"),
-                  position: naturalMRC,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalLBS"),
-                  position: naturalLBS,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalKKG"),
-                  position: naturalKKG,
-                ),
-                const Marker(
-                  markerId: MarkerId("naturalKHP"),
-                  position: naturalKHP,
-                ),
-              },
-              onMapCreated: (mapController) {
-                _controller.complete(mapController);
-              },
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 }
