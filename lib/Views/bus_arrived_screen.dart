@@ -177,7 +177,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
         height: 210,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: AppColors.whiteColor,
+          color: AppColors.blueBackground,
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -195,7 +195,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                 '${widget.arrivalManager.getBusStopName(widget.arrivalManager.boardingIndex)} ',
                 style: GoogleFonts.poppins(
                     decoration: TextDecoration.none,
-                    color: Colors.green,
+                    color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold),
               ),
@@ -227,7 +227,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                 height: 55,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: AppColors.lightColor,
+                  color: AppColors.blueBoxColor,
                 ),
                 child: Row(
                   children: [
@@ -242,8 +242,6 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                           )),
                     ),
                     Expanded(
-                        child: Align(
-                      alignment: Alignment.center,
                       child: Text("${_curStop}",
                           softWrap: false,
                           maxLines: 1,
@@ -254,7 +252,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           )),
-                    ))
+                    )
                   ],
                 )),
           ),
@@ -267,7 +265,7 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                 height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: AppColors.lightColor,
+                  color: AppColors.blueBoxColor,
                 ),
                 child: Row(
                   children: [

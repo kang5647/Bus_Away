@@ -166,7 +166,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
           Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: AppColors.whiteColor,
+          color: AppColors.blueBackground,
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -187,7 +187,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
               padding: EdgeInsets.symmetric(horizontal: 15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: AppColors.lightColor,
+                color: AppColors.blueTitle,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -235,7 +235,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                         foregroundColor: AppColors.whiteColor,
-                        backgroundColor: AppColors.greyColor,
+                        backgroundColor: AppColors.blueBoxColor,
                         //fixedSize : Size(),
                       ),
                       onPressed: () {},
@@ -263,7 +263,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                         foregroundColor: AppColors.whiteColor,
-                        backgroundColor: AppColors.greyColor,
+                        backgroundColor: AppColors.blueBoxColor,
                         //fixedSize : Size(),
                       ),
                       onPressed: () {},

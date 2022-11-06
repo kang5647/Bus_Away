@@ -204,8 +204,8 @@ class _EnterScreenState extends State<EnterScreen> {
                           markers: markers.values.toSet(),
                           onMapCreated: (GoogleMapController controller) {
                             googleMapController = controller;
-                            _controller.complete(controller);
                             googleMapController.setMapStyle(_mapStyle);
+                            _controller.complete(controller);
                           },
                         )
                       : const Center(
@@ -277,12 +277,14 @@ class _EnterScreenState extends State<EnterScreen> {
                           target: LatLng(currentLocation.latitude!,
                               currentLocation.longitude!),
                           zoom: 14)));
+
                   var marker = Marker(
                     markerId: locationMarkerID,
                     position: LatLng(
                         currentLocation.latitude!, currentLocation.longitude!),
                     icon: mylocationIcon,
                   );
+
                   markers[locationMarkerID] = marker;
                 });
               },
