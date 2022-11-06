@@ -2,6 +2,7 @@
 /// Send notifications to the user when it is only one stop away and when the bus has arrived at the alighting point
 import 'dart:async';
 import 'package:bus_app/Control/arrival_manager.dart';
+import 'package:bus_app/Views/confirmed_bus_user_screen.dart';
 import 'package:bus_app/Views/enter_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/scheduler.dart';
@@ -141,7 +142,9 @@ class _busArrivedScreenState extends State<busArrivedScreen> {
                             child: const Text("Back to Main Page"),
                             onPressed: () => {
                               //endNotification = false,
+                              globalKey.currentState?.removeOverlay(),
                               Navigator.pop(context),
+                              // Get.to(EnterScreen())
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(

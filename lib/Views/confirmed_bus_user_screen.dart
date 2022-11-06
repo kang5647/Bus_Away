@@ -15,6 +15,8 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:bus_app/Control/arrival_manager.dart';
 import 'package:flutter/scheduler.dart';
 
+GlobalKey<_Confirmed_infoState> globalKey = GlobalKey();
+
 class Confirmed_info extends StatefulWidget {
   final ArrivalManager arrivalManager;
   final String busServiceNo;
@@ -40,6 +42,7 @@ class _Confirmed_infoState extends State<Confirmed_info> {
 
   /// Overlay for bus_arrived_screen
   OverlayEntry? entry;
+  OverlayState? overlay;
 
   ///Show [busArrivedScreen] which displays the current bus stop and the number of stops away from the destination
   void showOverlay() {
@@ -100,12 +103,19 @@ class _Confirmed_infoState extends State<Confirmed_info> {
     super.dispose();
   }
 
+  void removeOverlay() {
+    print('Dispose overlay');
+    overlay?.dispose();
+    overlay = null;
+  }
+
   /// Display the bus ETA info after data retrieval using LTA API is successful
   @override
   Widget build(BuildContext context) {
     futureBusService = jsonHelper.fetchServices(
         widget.arrivalManager.boarding, widget.busServiceNo);
     return FutureBuilder<List<BusEta>>(
+      key: globalKey,
       future: futureBusService,
       builder: (context, snapshot) {
         //updateBusArrTimings();
